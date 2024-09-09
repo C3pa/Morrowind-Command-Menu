@@ -124,49 +124,6 @@ function this.killHostiles()
 	end
 end
 
---- @param faction tes3faction
---- @return boolean joined
-function this.joinFaction(faction)
-	if faction.playerJoined then
-		return false
-	end
-	faction.playerJoined = true
-	tes3ui.updateStatsPane()
-	return true
-end
-
---- Lowers the player's rank in given faction.
---- @param faction tes3faction
-function this.demote(faction)
-	if not faction.playerJoined or faction.playerExpelled then
-		return
-	end
-	faction.playerRank = math.clamp(faction.playerRank - 1, 0, 9)
-end
-
---- @param faction tes3faction
-local function canPromote(faction)
-	local nextRank = faction.playerRank + 1
-	if faction:getRankName(nextRank) == ""
-	or faction.playerRank == 9 then
-		return false
-	end
-	return true
-end
-
---- Increases the player's rank in given faction.
---- @param faction tes3faction
-function this.promote(faction)
-	if not faction.playerJoined or faction.playerExpelled then
-		return
-	end
-	if not canPromote(faction) then
-		tes3.messageBox(i18n("You reached top rank in this faction."))
-		return
-	end
-	faction.playerRank = math.clamp(faction.playerRank + 1, 0, 9)
-end
-
 --- Teleports the player to given Cell or NPC.
 --- @param destination tes3cell|tes3npc
 function this.teleport(destination)

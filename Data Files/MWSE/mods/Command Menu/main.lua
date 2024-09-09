@@ -10,6 +10,8 @@ local i18n = mwse.loadTranslations("Command Menu")
 local mcm = configlib.getConfig()
 --- @type CommandMenu.objectsTable
 local objects = {}
+--- @type tes3uiElement, mwseMCMSetting[]
+local menu, menuMCMComponents
 local log = logger.new({
 	name = "Command Menu",
 	logLevel = config.logLevel,
@@ -22,7 +24,9 @@ event.register(tes3.event.initialized, function()
 end)
 
 event.register(tes3.event.loaded, function()
-	ui.createMenu(objects, config)
+	local t = ui.createMenu(objects, config)
+	menu = t.menu
+	menuMCMComponents = t.mcmComponents
 end, { doOnce = true })
 
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
@@ -32,7 +36,7 @@ local function openMenu(e)
 		tes3.messageBox(i18n("Load a game to open Command Menu."))
 		return
 	end
-	ui.openMenu(objects, config)
+	ui.openMenu(menu, menuMCMComponents)
 end
 
 event.register(tes3.event.keyDown, openMenu)

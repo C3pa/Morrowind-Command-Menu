@@ -107,11 +107,23 @@ return {
 		["Status: expelled."] = "Status: expelled.",
 		["Status: member, rank"] = "Status: member, rank",
 		["Join"] = "Join",
+		["Leave"] = "Leave",
 		["Demote"] = "Demote",
 		["Promote"] = "Promote",
 		["Rejoin"] = "Rejoin",
-		["Expell"] = "Expell",
+		["Expel"] = "Expel",
 		["You reached top rank in this faction."] = "You reached top rank in this faction.",
+
+	-- Quests tab
+		["Quests"] = "Quests",
+		["Choose a quest..."] = "Choose a quest...",
+		["Selected quest"] = "Selected quest",
+		["Current journal index"] = "Current journal index",
+		["Journal index"] = "Journal index",
+		["Quest name"] = "Quest name",
+		["Finished"] = "Finished",
+		["Restart"] = "Restart",
+
 
 	["mcm"] = {
 		-- The default sidebar text. Shown when NO button, slider, etc. is hovered over.

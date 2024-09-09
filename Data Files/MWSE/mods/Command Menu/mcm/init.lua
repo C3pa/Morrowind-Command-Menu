@@ -41,13 +41,15 @@ local function registerModConfig()
 		headerImagePath = "MWSE/mods/Command Menu/mcm/Header.tga",
 		onClose = function()
 			configlib.saveConfig(mcmConfig)
-		end
+		end,
+		showDefaultSetting = true,
 	})
 	template:register()
 
 	do -- General
 		local general = template:createSideBarPage({
 			label = i18n("General"),
+			showReset = true,
 			postCreate = function(self)
 				self.sidebar.elements.subcomponentsContainer.paddingAllSides = 8
 			end

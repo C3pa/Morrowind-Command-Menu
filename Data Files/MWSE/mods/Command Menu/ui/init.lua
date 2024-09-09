@@ -93,7 +93,7 @@ function ui.createCategory(parent, labelText)
 	local container = ui.createTopBottomBlock(outerContainer, tes3ui.registerID("ContentsContainer"))
 	container.borderLeft = 8
 	container.borderTop = 8
-	return container
+	return container, label
 end
 
 --- @param previewBlock tes3uiElement
@@ -275,9 +275,36 @@ function ui.createHeadingMenu(params)
 	}
 end
 
+--- Some super duper secret agent code from Hrnchamd aimed to fix an issue with text label overlapping.
+--- @param menu tes3uiElement
+function ui.updateLayoutTextWrapping(menu)
+	--- @param element tes3uiElement
+	local function recurse(element)
+		if element.contentType == tes3.contentType.text then
+			-- Flag element to reflow content
+			if element.wrapText then
+				element.wrapText = true
+			end
+		else
+			for _, child in pairs(element.children) do
+				if child then
+					ui.updateLayoutTextWrapping(child)
+					-- As originially suggested by Hrnchamd. Doesn't fix the issue unfortunately.
+					-- recurse(child)
+				end
+			end
+		end
+	end
+
+	menu:updateLayout()
+	recurse(menu)
+	menu:updateLayout()
+end
+
+
+
 --- @param objects CommandMenu.objectsTable
 --- @param mcmConfig CommandMenu.modConfigTable
---- @return tes3uiElement
 function ui.createMenu(objects, mcmConfig)
 	local t = ui.createHeadingMenu({
 		heading = i18n("Choose items to add"),
@@ -294,6 +321,7 @@ function ui.createMenu(objects, mcmConfig)
 
 	--- @type table<string, tes3uiElement>
 	local tabs = {}
+	local mcmComponents = {}
 
 	local generalContainer = ui.createTabContainer(menu, tes3ui.registerID("CommandMenu_general_container"))
 	tabs.generalContainer = generalContainer
@@ -549,7 +577,7 @@ function ui.createMenu(objects, mcmConfig)
 			mwse.mcm.createButton(container, {
 				label = getBountyLabel(),
 				buttonText = i18n("Clear bounty"),
-				postCreate = function (self)
+				postCreate = function(self)
 					self.label = getBountyLabel()
 					self.elements.label.text = getBountyLabel()
 				end,
@@ -732,6 +760,8 @@ function ui.createMenu(objects, mcmConfig)
 			-- We don't want default messagebox.
 			--- @diagnostic disable-next-line: duplicate-set-field
 			input.callback = function() end
+
+			table.insert(mcmComponents, input)
 		end
 
 		local attributesDerivedContainer = ui.createCategory(pane, i18n("Derived Attributes"))
@@ -756,6 +786,8 @@ function ui.createMenu(objects, mcmConfig)
 			-- We don't want default messagebox.
 			--- @diagnostic disable-next-line: duplicate-set-field
 			input.callback = function() end
+
+			table.insert(mcmComponents, input)
 		end
 
 		local skillsContainer = ui.createCategory(pane, i18n("Skills"))
@@ -781,6 +813,8 @@ function ui.createMenu(objects, mcmConfig)
 			-- We don't want default messagebox.
 			--- @diagnostic disable-next-line: duplicate-set-field
 			input.callback = function() end
+
+			table.insert(mcmComponents, input)
 		end
 	end
 
@@ -1045,18 +1079,25 @@ function ui.createMenu(objects, mcmConfig)
 			buttonsBlock.borderAllSides = 4
 
 			local join = buttonsBlock:createButton({
-				text = i18n("Join"),
+				text = faction.playerJoined and i18n("Leave") or i18n("Join"),
 			})
 			join:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.joinFaction(faction)
+				if faction.playerJoined then
+					faction:leave()
+					label.text = getFactionLabel(faction)
+					join.text = i18n("Join")
+					return
+				end
+				faction:join()
 				label.text = getFactionLabel(faction)
+				join.text = i18n("Leave")
 			end)
 
 			local demote = buttonsBlock:createButton({
 				text = i18n("Demote"),
 			})
 			demote:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.demote(faction)
+				faction:demote()
 				label.text = getFactionLabel(faction)
 			end)
 
@@ -1064,26 +1105,157 @@ function ui.createMenu(objects, mcmConfig)
 				text = i18n("Promote"),
 			})
 			promote:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.promote(faction)
+				faction:promote()
 				label.text = getFactionLabel(faction)
 			end)
 
-			local expell = buttonsBlock:createButton({
-				text = faction.playerExpelled and i18n("Rejoin") or i18n("Expell")
+			local expel = buttonsBlock:createButton({
+				text = faction.playerExpelled and i18n("Rejoin") or i18n("Expel")
 			})
-			expell:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			expel:registerAfter(tes3.uiEvent.mouseClick, function(e)
 				if not faction.playerJoined then return end
 				if faction.playerExpelled then
-					tes3.setExpelled({ faction = faction, expelled = false })
-					expell.text = i18n("Expell")
+					faction:clearExpel()
+					expel.text = i18n("Expel")
 					label.text = getFactionLabel(faction)
 					return
 				end
-				tes3.setExpelled({ faction = faction })
-				expell.text = i18n("Rejoin")
+				faction:expel()
+				expel.text = i18n("Rejoin")
 				label.text = getFactionLabel(faction)
 			end)
 		end
+	end
+
+	local questsContainer = ui.createTabContainer(menu, tes3ui.registerID("CommandMenu_quests_container"))
+	tabs.questsContainer = questsContainer
+	do -- Quests tab
+		local currentQuest = tes3.worldController.quests[1]
+
+		--- @param container tes3uiElement
+		--- @param quest tes3quest
+		local function recreateQuestInfosList(container, quest)
+			local dialogue = quest.dialogue[1]
+			local topContainer = ui.createTopBottomBlock(container)
+			topContainer.paddingAllSides = 8
+			local label = topContainer:createLabel({
+				text = string.format("%s: %s (%q)", i18n("Selected quest"), quest.id, dialogue.id)
+			})
+			label.color = tes3ui.getPalette(tes3.palette.bigNormalColor)
+
+			--- @param dialogue tes3dialogue
+			local function getCurrentIndexText(dialogue)
+				return string.format("%s: %s",
+					i18n("Current journal index"),
+					tes3.getJournalIndex({ id = dialogue })
+				)
+			end
+
+			local currentIndex = topContainer:createLabel({
+				text = getCurrentIndexText(dialogue)
+			})
+
+			local infosPane = ui.createSearchPane(container, function(paneItem, searchTerm, cleared)
+				if cleared then
+					paneItem.visible = true
+					return
+				end
+				local categoryLabel = paneItem.children[1]
+				if util.ciContains(categoryLabel.text, searchTerm) then
+					paneItem.visible = true
+					return
+				end
+				local journalIndex = paneItem.children[2].children[1]
+				if util.ciContains(journalIndex.text, searchTerm) then
+					paneItem.visible = true
+					return
+				end
+				paneItem.visible = false
+			end)
+
+			local len = #dialogue.info
+			for i, info in ipairs(dialogue.info) do
+				-- Text has '@' and '#' characters arount topic links. Remove them
+				local infoText = string.gsub(string.gsub(info.text, "@", ""), "#", "")
+				local container, text = ui.createCategory(infosPane, infoText)
+				container.consumeMouseEvents = false
+				text.color = tes3ui.getPalette(tes3.palette.normalColor)
+				text.consumeMouseEvents = false
+				text.wrapText = true
+
+				local journalIndex = container:createLabel({
+					text = string.format("%s: %d, %s: %s, %s: %s, %s: %s.",
+						i18n("Journal index"), info.journalIndex,
+						i18n("Quest name"), info.isQuestName,
+						i18n("Finished"), info.isQuestFinished,
+						i18n("Restart"), info.isQuestRestart
+					)
+				})
+				journalIndex.consumeMouseEvents = false
+				journalIndex.color = tes3ui.getPalette(tes3.palette.miscColor)
+
+				local lastEntry = i == len
+				if not lastEntry then
+					infosPane:createDivider()
+				end
+				local container = container.parent
+				container:registerAfter(tes3.uiEvent.mouseOver, function(e)
+					text.color = tes3ui.getPalette(tes3.palette.activeOverColor)
+					text:getTopLevelMenu():updateLayout()
+				end)
+				container:registerAfter(tes3.uiEvent.mouseLeave, function(e)
+					text.color = tes3ui.getPalette(tes3.palette.normalColor)
+					text:getTopLevelMenu():updateLayout()
+				end)
+				container:register(tes3.uiEvent.mouseDown, function(e)
+					text.color = tes3ui.getPalette(tes3.palette.activePressedColor)
+					text:getTopLevelMenu():updateLayout()
+				end)
+				container:register(tes3.uiEvent.mouseRelease, function(e)
+					text.color = tes3ui.getPalette(tes3.palette.activeOverColor)
+					text:getTopLevelMenu():updateLayout()
+				end)
+				container:registerAfter(tes3.uiEvent.mouseClick, function(e)
+					if info.journalIndex == 0 then return end
+					dialogue:addToJournal({
+						index = info.journalIndex
+					})
+
+					tes3.setJournalIndex({
+						id = dialogue,
+						index = info.journalIndex,
+						showMessage = true,
+					})
+					currentIndex.text = getCurrentIndexText(dialogue)
+				end)
+			end
+			ui.updateLayoutTextWrapping(infosPane:getTopLevelMenu())
+		end
+
+		local label = questsContainer:createLabel({ text = i18n("Choose a quest...") })
+		label.color = tes3ui.getPalette(tes3.palette.headerColor)
+
+		local questsPane = ui.createSearchPane(questsContainer, ui.standardFilterVisible)
+		questsPane.heightProportional = 2 / 3
+
+		local currentContainer = questsContainer:createThinBorder({ id = tes3ui.registerID("CommandMenu_quests_current_container") })
+		currentContainer.autoHeight = true
+		currentContainer.autoWidth = true
+		currentContainer.widthProportional = 1.0
+		currentContainer.heightProportional = 4 / 3
+		currentContainer.flowDirection = tes3.flowDirection.topToBottom
+		currentContainer.paddingAllSides = 2
+
+		for _, quest in ipairs(tes3.worldController.quests) do
+			local select = questsPane:createTextSelect({ text = quest.id })
+			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+				currentQuest = quest
+				currentContainer:destroyChildren()
+				recreateQuestInfosList(currentContainer, currentQuest)
+			end)
+		end
+
+		recreateQuestInfosList(currentContainer, currentQuest)
 	end
 
 	do -- Done button
@@ -1112,20 +1284,24 @@ function ui.createMenu(objects, mcmConfig)
 	ui.createTabButton(tabsButtonsContainer, i18n("Teleport"), tabs, "teleportContainer", t.title, i18n("Teleport"))
 	ui.createTabButton(
 		tabsButtonsContainer, i18n("Factions"), tabs, "factionsContainer", t.title, i18n("Manage faction membership"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Quests"), tabs, "questsContainer", t.title, i18n("Quests"))
 
 	-- Show the first tab.
 	firstButton:triggerEvent(tes3.uiEvent.mouseClick)
 	menu:getTopLevelMenu():updateLayout()
 	t.menu.visible = false
-	return t.menu
+	return { menu = t.menu, mcmComponents = mcmComponents }
 end
 
---- @param objects CommandMenu.objectsTable
---- @param mcmConfig CommandMenu.modConfigTable
-function ui.openMenu(objects, mcmConfig)
-	if tes3.onMainMenu() then return end
-	local menu = tes3ui.findMenu(menuID) or ui.createMenu(objects, mcmConfig)
+--- @param menu tes3uiElement
+--- @param menuMCMComponents mwseMCMSetting[]
+function ui.openMenu(menu, menuMCMComponents)
+	if tes3.onMainMenu() or not menu then return end
 	menu.visible = true
+	-- Force refresh of current vars. Necessary for the player tab.
+	for _, setting in ipairs(menuMCMComponents) do
+		setting:setVariableValue(setting.variable.value)
+	end
 	tes3ui.enterMenuMode(menuID)
 end
 
