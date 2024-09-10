@@ -1,6 +1,6 @@
 # Command Menu
 
-This mod adds a command menu. The menu is opened by pressing a key combination (Ctrl + C by default) while in-game. The menu has many features:
+This mod adds a command menu. The menu is opened by pressing a key combination (Alt + C by default) while in-game. The menu has many features:
  - General tab - various things to tweak: engine settings, enabling/disabling certain Morrowind mechanics, crime & security tweaking, tweaking passage of time and current weather, and miscellaneous commands.
  - Player tab - change the player's primary and derived attributes and skills
  - Items tab - choose items to add to the player's inventory
