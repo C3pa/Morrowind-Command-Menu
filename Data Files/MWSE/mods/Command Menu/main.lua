@@ -10,8 +10,8 @@ local i18n = mwse.loadTranslations("Command Menu")
 local mcm = configlib.getConfig()
 --- @type CommandMenu.objectsTable
 local objects = {}
---- @type tes3uiElement, mwseMCMSetting[]
-local menu, menuMCMComponents
+--- @type mwseMCMSetting[]
+local menuMCMComponents
 local log = logger.new({
 	name = "Command Menu",
 	logLevel = config.logLevel,
@@ -25,9 +25,8 @@ end)
 
 event.register(tes3.event.loaded, function()
 	local t = ui.createMenu(objects, config)
-	menu = t.menu
 	menuMCMComponents = t.mcmComponents
-end, { doOnce = true })
+end)
 
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function openMenu(e)
@@ -36,7 +35,7 @@ local function openMenu(e)
 		tes3.messageBox(i18n("Load a game to open Command Menu."))
 		return
 	end
-	ui.openMenu(menu, menuMCMComponents)
+	ui.openMenu(menuMCMComponents)
 end
 
 event.register(tes3.event.keyDown, openMenu)
@@ -100,7 +99,7 @@ end)
 -- Allow stealing feature.
 --- @param e activateEventData
 event.register(tes3.event.activate, function(e)
-	if not config.stealingEnabled then return end
+	if not config.stealingFree then return end
 	if e.activator ~= tes3.player then return end
 	local target = e.target
 	if tes3.hasOwnershipAccess({ reference = tes3.player, target = target }) then return end

@@ -1,12 +1,12 @@
 - Additional ideas:
+ - Big features:
+  - Add a tab for global variables. Note: tes3.dataHandler.nonDynamicData.globals can't be iterated over with pairs
+  - Spawn creature/NPC tab. Something similar to Axemagister's test menu.
  - Other console commands:
   - https://en.uesp.net/wiki/Morrowind:Console
   - https://en.uesp.net/wiki/Morrowind_Mod:Categorical_Function_List#Console
   - https://en.uesp.net/morrow/editor/mw_cscommands.shtml
  - Might want to add keybinds to some functions of the menu.
- - Big features:
-  - Add a tab for global variables. Note: tes3.dataHandler.nonDynamicData.globals can't be iterated over with pairs
-  - Spawn creature/NPC tab. Something similar to Axemagister's test menu.
  - Tweaking faction reputation
  - Player:
   - Tweaking reputation

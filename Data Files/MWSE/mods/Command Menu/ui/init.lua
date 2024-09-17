@@ -173,6 +173,8 @@ function ui.createSeachBox(parent)
 	return input
 end
 
+-- TODO: consider limiting the number of search results to, for example 1000 items.
+
 --- This filter makes all the child items visible when there is no text in the search box.
 --- @param paneItem tes3uiElement
 --- @param searchTerm string
@@ -588,9 +590,9 @@ function ui.createMenu(objects, mcmConfig)
 			})
 
 			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Allow stealing owned items"),
+				label = i18n("Stealing owned items is not a crime"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "stealingEnabled" })
+				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "stealingFree" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
@@ -1293,10 +1295,12 @@ function ui.createMenu(objects, mcmConfig)
 	return { menu = t.menu, mcmComponents = mcmComponents }
 end
 
---- @param menu tes3uiElement
 --- @param menuMCMComponents mwseMCMSetting[]
-function ui.openMenu(menu, menuMCMComponents)
-	if tes3.onMainMenu() or not menu then return end
+function ui.openMenu(menuMCMComponents)
+	if tes3.onMainMenu() then return end
+	local menu = tes3ui.findMenu(menuID)
+	if not menu then return end
+
 	menu.visible = true
 	-- Force refresh of current vars. Necessary for the player tab.
 	for _, setting in ipairs(menuMCMComponents) do

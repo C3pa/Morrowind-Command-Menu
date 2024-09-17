@@ -8,6 +8,7 @@ This mod adds a command menu. The menu is opened by pressing a key combination (
  - Soul Gems tab - add filled soul gems to the player's inventory
  - Teleport tab - a menu for teleporting to a given cell or a chosen NPC
  - Factions tab - manage faction membership and rank
+ - Quests tab - step through each quest stage
  - In addition, the mod also has a feature for picking the landscape texture the player is looking at. This feature is unbound by default. To use it, go to the mod's MCM menu and bind it to certain key combinations. Pressing this key combo will show the name of the ground texture the player is looking at.
 
 These features make it useful for testing, and making mods.

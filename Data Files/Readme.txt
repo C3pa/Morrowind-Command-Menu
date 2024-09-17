@@ -1,7 +1,7 @@
 				Command Menu
 				By C3pa
 
-Version: 2.0.0
+Version: 2.0.1
 
 _________
 Contents
@@ -54,6 +54,9 @@ Feature: Added Quests tab. Useful to step through each quest stage.
 Feature: Added faction leaving to Factions tab.
 Bugfix: Fixed a typo in the Factions tab.
 Bugfix: Fixed stats on the players tab that may become out of date with current stat values.
+2.0.1
+Bugfix: Fix stealing is not a crime option feature being on by default. Now, it's off by default.
+Bugfix: Fix a rare crash reported by alpharedwolfy.
 
 ________
 Contact

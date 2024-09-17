@@ -37,7 +37,7 @@ return {
 		["Auto unlock doors and containers"] = "Auto unlock doors and containers",
 		["Current player bounty"] = "Current player bounty",
 		["Clear bounty"] = "Clear bounty",
-		["Allow stealing owned items"] = "Allow stealing owned items",
+		["Stealing owned items is not a crime"] = "Stealing owned items is not a crime",
 		["Picking locks isn't considered a crime"] = "Picking locks isn't considered a crime",
 		["Clear stolen flag on items in player's inventory"] = "Clear stolen flag on items in player's inventory",
 		["Clear"] = "Clear",
