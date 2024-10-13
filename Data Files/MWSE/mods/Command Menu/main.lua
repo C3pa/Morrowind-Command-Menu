@@ -17,6 +17,7 @@ local log = logger.new({
 	logLevel = config.logLevel,
 })
 
+dofile("Command Menu.interop.mods")
 dofile("Command Menu.mcm")
 
 event.register(tes3.event.initialized, function()

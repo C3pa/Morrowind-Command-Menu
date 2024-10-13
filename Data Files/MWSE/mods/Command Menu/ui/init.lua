@@ -1,9 +1,10 @@
 local commands = require("Command Menu.commands")
 local configlib = require("Command Menu.config")
+local uiid = require("Command Menu.ui.uiid")
 local util = require("Command Menu.util")
 
 local i18n = mwse.loadTranslations("Command Menu")
-local menuID = tes3ui.registerID("CommandMenu")
+local menuID = tes3ui.registerID(uiid.menu)
 local ui = {}
 
 --- @param tab tes3uiElement
@@ -1265,7 +1266,7 @@ function ui.createMenu(objects, mcmConfig)
 		doneContainer.childAlignX = 1.0
 
 		local done = doneContainer:createButton({
-			id = tes3ui.registerID("CommandMenu_DoneButton"),
+			id = tes3ui.registerID(uiid.doneButton),
 			text = tes3.findGMST(tes3.gmst.sDone).value --[[@as string]]
 		})
 		done:registerAfter(tes3.uiEvent.mouseClick, function(e)

@@ -1,7 +1,7 @@
 				Command Menu
 				By C3pa
 
-Version: 2.0.1
+Version: 2.1.0
 
 _________
 Contents
@@ -57,6 +57,8 @@ Bugfix: Fixed stats on the players tab that may become out of date with current 
 2.0.1
 Bugfix: Fix stealing is not a crime option feature being on by default. Now, it's off by default.
 Bugfix: Fix a rare crash reported by alpharedwolfy.
+2.1.0
+Feature: Added compatibility with Right Click Menu Exit. Now, if that mod is present, you will also be able to close the Command Menu using right click.
 
 ________
 Contact
