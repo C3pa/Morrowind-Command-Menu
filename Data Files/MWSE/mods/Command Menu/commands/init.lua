@@ -97,9 +97,9 @@ function this.clearStolenFlag()
 		return false
 	end
 
-	for _, i in ipairs(tes3.mobilePlayer.inventory) do
+	for _, stack in ipairs(tes3.mobilePlayer.inventory) do
 		tes3.setItemIsStolen({
-			item = i.object,
+			item = stack.object --[[@as tes3item]],
 			stolen = false
 		})
 	end
@@ -119,6 +119,7 @@ function this.killHostiles()
 	if tes3.onMainMenu() then
 		return false
 	end
+
 	for _, hostile in ipairs(tes3.mobilePlayer.hostileActors) do
 		hostile:kill()
 	end
@@ -134,10 +135,25 @@ function this.teleport(destination)
 		cell = npcRef.cell
 		position = npcRef.position
 	end
+	--- @cast cell tes3cell
 	position = position or util.getTeleportPosition(cell)
 	tes3.positionCell({
 		cell = cell.isInterior and cell or { cell.gridX, cell.gridY },
-		position = position,
+		position = position
+	})
+end
+
+
+
+---@param npc tes3npc
+function this.teleportNPC(npc)
+	local npcRef = tes3.getReference(npc.id)
+	local position = util.getPointInFrontOfPlayer()
+	local cell = tes3.player.cell
+	tes3.positionCell({
+		reference = npcRef,
+		cell = cell.isInterior and cell or nil,
+		position = position
 	})
 end
 

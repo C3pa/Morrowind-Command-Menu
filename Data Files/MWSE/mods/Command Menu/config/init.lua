@@ -1,10 +1,11 @@
-local configFile = "Command Menu"
+local fileName = "Command Menu"
 
---- @class CommandMenu.modConfigTable
-local defaultConfig = {
-	--- @type mwseLoggerLogLevel
-	logLevel = "TRACE",
-	asetting = 300,
+--- @class CommandMenu.config
+--- @field version string A [semantic version](https://semver.org/).
+--- @field default CommandMenu.config Access to the default config can be useful in the MCM.
+--- @field fileName string
+local default = {
+	logLevel = mwse.logLevel.info,
 	--- @type mwseKeyMouseCombo
 	openMenuKey = {
 		keyCode = tes3.scanCode.c,
@@ -46,29 +47,9 @@ local defaultConfig = {
 	filterOutDeprecated = false,
 }
 
-local cachedConfig = mwse.loadConfig(configFile, defaultConfig)
-local this = {
-	version = "2.0.0",
-	--- @type CommandMenu.modConfigTable
-	config = {},
-	default = defaultConfig,
-}
+local config = mwse.loadConfig(fileName, default)
+config.version = "2.0.0"
+config.default = default
+config.fileName = fileName
 
-setmetatable(this.config, { __index = cachedConfig })
-
---- Returns a copy of the current config table.
---- This function should only be used in mcm\init.lua
---- @return CommandMenu.modConfigTable
-this.getConfig = function()
-	return table.copy(cachedConfig)
-end
-
---- Saves the config table to mod's config file.
---- This function should only be used in mcm\init.lua
---- @param mcmConfig CommandMenu.modConfigTable
-this.saveConfig = function(mcmConfig)
-	table.copy(mcmConfig, cachedConfig)
-	mwse.saveConfig(configFile, cachedConfig)
-end
-
-return this
+return config

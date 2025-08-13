@@ -1,5 +1,4 @@
 local commands = require("Command Menu.commands")
-local configlib = require("Command Menu.config")
 local uiid = require("Command Menu.ui.uiid")
 local util = require("Command Menu.util")
 
@@ -287,14 +286,14 @@ function ui.updateLayoutTextWrapping(menu)
 			-- Flag element to reflow content
 			if element.wrapText then
 				element.wrapText = true
+				return
 			end
-		else
-			for _, child in pairs(element.children) do
-				if child then
-					ui.updateLayoutTextWrapping(child)
-					-- As originially suggested by Hrnchamd. Doesn't fix the issue unfortunately.
-					-- recurse(child)
-				end
+		end
+		for _, child in pairs(element.children) do
+			if child then
+				ui.updateLayoutTextWrapping(child)
+				-- As originally suggested by Hrnchamd. Doesn't fix the issue unfortunately.
+				-- recurse(child)
 			end
 		end
 	end
@@ -306,9 +305,10 @@ end
 
 
 
+-- TODO consider removing the config parameter
 --- @param objects CommandMenu.objectsTable
---- @param mcmConfig CommandMenu.modConfigTable
-function ui.createMenu(objects, mcmConfig)
+--- @param config CommandMenu.config
+function ui.createMenu(objects, config)
 	local t = ui.createHeadingMenu({
 		heading = i18n("Choose items to add"),
 		id = menuID,
@@ -490,73 +490,73 @@ function ui.createMenu(objects, mcmConfig)
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Combat enabled"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "combatEnabled" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "combatEnabled" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Rest interrupt enabled"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "restInterruptEnabled" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "restInterruptEnabled" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Essential actors can't be damaged"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "blockDamageForEssentialActors" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "blockDamageForEssentialActors" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Always hit"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "alwaysHit" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "alwaysHit" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Casting always succeeds"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "castingAlwaysSucceeds" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "castingAlwaysSucceeds" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Spells don't consume magicka"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "spellsConsumeNoMagicka" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "spellsConsumeNoMagicka" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Enchantments don't consume charge"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "enchantmentsConsumeNoCharge" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "enchantmentsConsumeNoCharge" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Brewing potions always succeeds"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "potionBrewingAlwaysSucceeds" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "potionBrewingAlwaysSucceeds" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Self-repairing equipment always succeeds"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "repairingAlwaysSucceeds" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "repairingAlwaysSucceeds" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Picking locks always succeeds"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "lockPickAlwaysSucceeds" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "lockPickAlwaysSucceeds" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Player doesn't recieve Sun Damage as a Vampire"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "blockSunDamage" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "blockSunDamage" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Fatiguesless jumping"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "fatiguelessJumping" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "fatiguelessJumping" })
 			})
 		end
 
@@ -566,7 +566,7 @@ function ui.createMenu(objects, mcmConfig)
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Auto unlock doors and containers"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "unlockEnabled" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "unlockEnabled" })
 			})
 
 			local function getBountyLabel()
@@ -593,13 +593,13 @@ function ui.createMenu(objects, mcmConfig)
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Stealing owned items is not a crime"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "stealingFree" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "stealingFree" })
 			})
 
 			mwse.mcm.createOnOffButton(container, {
 				label = i18n("Picking locks isn't considered a crime"),
 				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = mcmConfig, id = "lockPickNotCrime" })
+				variable = mwse.mcm.createTableVariable({ table = config, id = "lockPickNotCrime" })
 			})
 
 			mwse.mcm.createButton(container, {
@@ -1001,7 +1001,7 @@ function ui.createMenu(objects, mcmConfig)
 				})
 				select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 					commands.teleport(cell)
-					ui.closeMenu(mcmConfig)
+					ui.closeMenu(config)
 				end)
 			end
 		end
@@ -1019,7 +1019,8 @@ function ui.createMenu(objects, mcmConfig)
 				})
 				select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 					commands.teleport(npc)
-					ui.closeMenu(mcmConfig)
+					ui.closeMenu(config)
+					-- TODO: add an option to teleport the npc in front of the player
 				end)
 				select:register(tes3.uiEvent.help, function(e)
 					local tooltip = tes3ui.createTooltipMenu()
@@ -1164,6 +1165,9 @@ function ui.createMenu(objects, mcmConfig)
 					return
 				end
 				local categoryLabel = paneItem.children[1]
+				if not categoryLabel then
+					return
+				end
 				if util.ciContains(categoryLabel.text, searchTerm) then
 					paneItem.visible = true
 					return
@@ -1270,7 +1274,7 @@ function ui.createMenu(objects, mcmConfig)
 			text = tes3.findGMST(tes3.gmst.sDone).value --[[@as string]]
 		})
 		done:registerAfter(tes3.uiEvent.mouseClick, function(e)
-			ui.closeMenu(mcmConfig)
+			ui.closeMenu(config)
 		end)
 	end
 
@@ -1300,7 +1304,10 @@ end
 function ui.openMenu(menuMCMComponents)
 	if tes3.onMainMenu() then return end
 	local menu = tes3ui.findMenu(menuID)
-	if not menu then return end
+	if not menu then
+		tes3.messageBox("No MENU found!")
+		return
+	end
 
 	menu.visible = true
 	-- Force refresh of current vars. Necessary for the player tab.
@@ -1310,12 +1317,12 @@ function ui.openMenu(menuMCMComponents)
 	tes3ui.enterMenuMode(menuID)
 end
 
---- @param mcmConfig CommandMenu.modConfigTable
-function ui.closeMenu(mcmConfig)
+-- TODO consider removing the config parameter
+--- @param config CommandMenu.config
+function ui.closeMenu(config)
 	local menu = tes3ui.findMenu(menuID)
 	if not menu then return end
-
-	configlib.saveConfig(mcmConfig)
+	mwse.saveConfig(config.fileName, config)
 	menu.visible = false
 	tes3ui.leaveMenuMode()
 end

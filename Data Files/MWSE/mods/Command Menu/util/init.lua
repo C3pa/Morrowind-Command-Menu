@@ -1,6 +1,6 @@
-local log = require("logging.logger").getLogger("Command Menu") --[[@as mwseLogger]]
-local config = require("Command Menu.config").config
+local config = require("Command Menu.config")
 
+local log = mwse.Logger.new()
 local util = {}
 
 --- https://stackoverflow.com/questions/2421695/first-character-uppercase-lua
@@ -53,6 +53,16 @@ function util.getSoulGemById(soulGems, id)
 	end
 end
 
+local offset = tes3vector3.new(0, 128, 0)
+
+function util.getPointInFrontOfPlayer()
+	local pos = tes3.player.position:copy()
+	local rot = tes3matrix33.new()
+	rot:toRotationY(tes3.mobilePlayer.facing)
+	pos = pos + rot * offset
+	return pos
+end
+
 --- @param cell tes3cell
 --- @return tes3vector3
 function util.getTeleportPosition(cell)
@@ -69,7 +79,7 @@ function util.getTeleportPosition(cell)
 		return firstRef.position
 	end
 
-	-- We rely on engine to trace the Z coordinate to ground
+	-- We rely on engine to trace the Z coordinate to the ground.
 	return tes3vector3.new(cell.gridX * 8192 + 4096, cell.gridY * 8192 + 4096, -1000)
 end
 
@@ -109,9 +119,11 @@ local function filterDeprecated(object)
 	if not config.filterOutDeprecated then
 		return false
 	end
-	if object.name and string.sub(object.name, 1, 1) == "<" then
+
+	if object.name and util.isDeprecated(object.name) then
 		return true
 	end
+
 	return false
 end
 

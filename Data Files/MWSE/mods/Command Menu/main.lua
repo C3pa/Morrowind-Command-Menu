@@ -1,20 +1,17 @@
-local inspect = require("inspect")
-local logger = require("logging.logger")
-
-local configlib = require("Command Menu.config")
+local config = require("Command Menu.config")
 local ui = require("Command Menu.ui")
 local util = require("Command Menu.util")
 
-local config = configlib.config
 local i18n = mwse.loadTranslations("Command Menu")
-local mcm = configlib.getConfig()
+
+
 --- @type CommandMenu.objectsTable
 local objects = {}
 --- @type mwseMCMSetting[]
 local menuMCMComponents
-local log = logger.new({
+local log = mwse.Logger.new({
 	name = "Command Menu",
-	logLevel = config.logLevel,
+	logLevel = config.logLevel
 })
 
 dofile("Command Menu.interop.mods")
@@ -28,6 +25,8 @@ event.register(tes3.event.loaded, function()
 	local t = ui.createMenu(objects, config)
 	menuMCMComponents = t.mcmComponents
 end)
+-- TODO: figure out why I can't do doOnce
+-- , { doOnce = true })
 
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function openMenu(e)
