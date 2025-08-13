@@ -22,7 +22,6 @@ end)
 
 event.register(tes3.event.loaded, function()
 	local menu = ui.createMenu(objects)
-	menuMCMComponents = menu.mcmComponents
 end)
 -- TODO: figure out why I can't do doOnce
 -- , { doOnce = true })
@@ -32,11 +31,11 @@ local function openMenu(e)
 	if not tes3.isKeyEqual({ actual = e, expected = config.openMenuKey }) then return end
 
 	if ui.isMenuOpen() then
-		ui.closeMenu(config)
+		ui.closeMenu()
 		return
 	end
 
-	ui.openMenu(menuMCMComponents)
+	ui.openMenu()
 end
 
 event.register(tes3.event.keyDown, openMenu)

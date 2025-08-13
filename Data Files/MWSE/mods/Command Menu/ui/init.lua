@@ -4,6 +4,7 @@ local uiid = require("Command Menu.ui.uiid")
 local util = require("Command Menu.util")
 
 local i18n = mwse.loadTranslations("Command Menu")
+local log = mwse.Logger.new()
 local menuID = tes3ui.registerID(uiid.menu)
 local ui = {}
 
@@ -47,27 +48,29 @@ function ui.createTabButton(container, buttonText, tabs, currentTabKey, newTitle
 	return button
 end
 
---- @param parent tes3uiElement
---- @param id string|integer|nil
-function ui.createLeftRightBlock(parent, id)
+---@param parent tes3uiElement
+---@param id string|integer|nil
+local function createAutoSizedBlock(parent, id)
 	local block = parent:createBlock({ id = id })
 	block.autoHeight = true
 	block.autoWidth = true
 	block.widthProportional = 1.0
-	block.flowDirection = tes3.flowDirection.leftToRight
+	return block
+end
 
+--- @param parent tes3uiElement
+--- @param id string|integer|nil
+function ui.createLeftRightBlock(parent, id)
+	local block = createAutoSizedBlock(parent, id)
+	block.flowDirection = tes3.flowDirection.leftToRight
 	return block
 end
 
 --- @param parent tes3uiElement
 --- @param id string|integer|nil
 function ui.createTopBottomBlock(parent, id)
-	local block = parent:createBlock({ id = id })
-	block.autoHeight = true
-	block.autoWidth = true
-	block.widthProportional = 1.0
+	local block = createAutoSizedBlock(parent, id)
 	block.flowDirection = tes3.flowDirection.topToBottom
-
 	return block
 end
 
@@ -75,6 +78,8 @@ end
 --- @param id string|integer|nil
 function ui.createTabContainer(parent, id)
 	local tabContainer = ui.createTopBottomBlock(parent, id)
+	tabContainer.borderLeft = 4
+	tabContainer.borderRight = 4
 	tabContainer.heightProportional = 1.0
 	tabContainer.visible = false
 
@@ -110,6 +115,8 @@ function ui.recreateSoulGemPreview(previewBlock, currentSoulGem, currentCreature
 	local icon = previewBlock:createImage({
 		path = "icons\\" .. currentSoulGem.icon
 	})
+	icon.imageScaleX = 2
+	icon.imageScaleY = 2
 	icon.borderLeft = 8
 	icon.borderRight = 16
 
@@ -132,9 +139,9 @@ function ui.recreateSoulGemPreview(previewBlock, currentSoulGem, currentCreature
 	})
 	soulLabel.color = tes3ui.getPalette(tes3.palette.headerColor)
 
-	local add = labelsBlock:createButton({ text = i18n("Add") })
-	add.borderTop = 12
-	add:registerAfter(tes3.uiEvent.mouseClick, function(e)
+	local addButton = labelsBlock:createButton({ text = i18n("Add") })
+	addButton.borderTop = 12
+	addButton:registerAfter(tes3.uiEvent.mouseClick, function(e)
 		tes3.addItem({
 			item = currentSoulGem,
 			soul = currentCreature,
@@ -145,6 +152,85 @@ function ui.recreateSoulGemPreview(previewBlock, currentSoulGem, currentCreature
 	end)
 
 	previewBlock:getTopLevelMenu():updateLayout()
+end
+
+---@param container tes3uiElement
+function ui.recreatePlayerPane(container)
+	container:getContentElement():destroyChildren()
+
+	local primaryAttributesCategory = ui.createCategory(container, i18n("Primary Attributes"))
+	for key, id in pairs(tes3.attribute) do
+		-- This function gets names from GMSTs which are capitalized.
+		local name = tes3.getAttributeName(id)
+		local input = mwse.mcm.createTextField(primaryAttributesCategory, {
+			label = name,
+			variable = mwse.mcm.createCustom({
+				converter = tonumber,
+				getter = function(self)
+					return tes3.mobilePlayer[key].current
+				end,
+				setter = function(self, newValue)
+					if not newValue then return end
+					local msg = string.format(i18n("Set x to y"), name, newValue)
+					tes3.messageBox({ message = msg, duration = 3 })
+					tes3.setStatistic({ reference = tes3.player, attribute = id, value = newValue })
+				end
+			})
+		})
+		-- We don't want default messagebox.
+		--- @diagnostic disable-next-line: duplicate-set-field
+		input.callback = function() end
+	end
+
+
+	local derivedAttributesCategory = ui.createCategory(container, i18n("Derived Attributes"))
+	local derivedKeys = { "health", "magicka", "fatigue", "encumbrance" }
+	for _, key in ipairs(derivedKeys) do
+		local name = util.capitalize(i18n(key))
+		local input = mwse.mcm.createTextField(derivedAttributesCategory, {
+			label = name,
+			variable = mwse.mcm.createCustom({
+				converter = tonumber,
+				getter = function(self)
+					return math.round(tes3.mobilePlayer[key].current, 2)
+				end,
+				setter = function(self, newValue)
+					if not newValue then return end
+					local msg = string.format(i18n("Set x to y"), name, newValue)
+					tes3.messageBox({ message = msg, duration = 3 })
+					tes3.setStatistic({ reference = tes3.player, name = key, value = newValue })
+				end
+			})
+		})
+		-- We don't want default messagebox.
+		--- @diagnostic disable-next-line: duplicate-set-field
+		input.callback = function() end
+	end
+
+	local skillsContainer = ui.createCategory(container, i18n("Skills"))
+	for key, id in pairs(tes3.skill) do
+		-- This function gets names from GMSTs which are capitalized.
+		local name = tes3.getSkillName(id)
+		local input = mwse.mcm.createTextField(skillsContainer, {
+			label = name,
+			inGameOnly = true,
+			variable = mwse.mcm.createCustom({
+				converter = tonumber,
+				getter = function(self)
+					return tes3.mobilePlayer[key].current
+				end,
+				setter = function(self, newValue)
+					if not newValue then return end
+					local msg = string.format(i18n("Set x to y"), name, newValue)
+					tes3.messageBox({ message = msg, duration = 3 })
+					tes3.setStatistic({ reference = tes3.player, skill = id, value = newValue })
+				end
+			})
+		})
+		-- We don't want default messagebox.
+		--- @diagnostic disable-next-line: duplicate-set-field
+		input.callback = function() end
+	end
 end
 
 --- @param parent tes3uiElement
@@ -164,11 +250,7 @@ function ui.createSeachBox(parent)
 		placeholderText = i18n("Search..."),
 	})
 	input.autoWidth = true
-
-	searchBox:registerAfter(tes3.uiEvent.mouseClick, function(e)
-		tes3ui.acquireTextInput(input)
-	end)
-
+	input.widthProportional = 1.0
 	return input
 end
 
@@ -178,23 +260,20 @@ end
 --- @param paneItem tes3uiElement
 --- @param searchTerm string
 --- @param cleared boolean
-function ui.standardFilterVisible(paneItem, searchTerm, cleared)
-	if cleared then
+local function standardFilterVisible(paneItem, searchTerm, cleared)
+	if cleared or util.ciContains(paneItem.text, searchTerm) then
 		paneItem.visible = true
-	else
-		if util.ciContains(paneItem.text, searchTerm) then
-			paneItem.visible = true
-		else
-			paneItem.visible = false
-		end
+		return
 	end
+
+	paneItem.visible = false
 end
 
 --- This filter makes all the child items hidden when there is no text in the search box.
 --- @param paneItem tes3uiElement
 --- @param searchTerm string
 --- @param cleared boolean
-function ui.standardFilterHidden(paneItem, searchTerm, cleared)
+local function standardFilterHidden(paneItem, searchTerm, cleared)
 	if not cleared and util.ciContains(paneItem.text, searchTerm) then
 		paneItem.visible = true
 		return
@@ -207,9 +286,10 @@ end
 --- Function called on each pane item. It should hide and show pane children that match given searchTerm
 --- (which is lowercase). Cleared is true when the search box text was cleared.
 --- @param filter fun(paneItem: tes3uiElement, searchTerm: string, cleared: boolean)
-function ui.createSearchPane(parent, filter)
+--- @param id string|integer|nil The id of the pane element.
+function ui.createSearchPane(parent, filter, id)
 	local input = ui.createSeachBox(parent)
-	local pane = parent:createVerticalScrollPane()
+	local pane = parent:createVerticalScrollPane({ id = id })
 	pane.autoHeight = true
 	pane.heightProportional = 1.0
 
@@ -308,22 +388,20 @@ end
 
 --- @param objects CommandMenu.objectsTable
 function ui.createMenu(objects)
-	local rootElement = ui.createHeadingMenu({
+	local menuElements = ui.createHeadingMenu({
 		heading = i18n("Choose items to add"),
 		id = menuID,
 		minWidth = 500,
 		minHeight = 800,
 	})
 
-	local menu = rootElement.body
+	local menu = menuElements.body
 
 	local tabsButtonsContainer = ui.createLeftRightBlock(menu)
-	tabsButtonsContainer.borderAllSides = 8
 	menu:createDivider()
 
 	--- @type table<string, tes3uiElement>
 	local tabs = {}
-	local mcmComponents = {}
 
 	local generalContainer = ui.createTabContainer(menu, tes3ui.registerID("CommandMenu_general_container"))
 	tabs.generalContainer = generalContainer
@@ -724,8 +802,10 @@ function ui.createMenu(objects)
 	do -- Player tab
 		local pane = ui.createSearchPane(playerContainer, function(category, searchTerm, cleared)
 			local contentsContainer = category:findChild("ContentsContainer")
+			---@cast contentsContainer tes3uiElement
 			for _, statBlock in ipairs(contentsContainer.children) do
 				local labelBlock = statBlock:findChild("LabelBlock")
+				---@cast labelBlock tes3uiElement
 				local label = labelBlock.children[1]
 				local statContainer = labelBlock.parent
 				if cleared then
@@ -738,86 +818,9 @@ function ui.createMenu(objects)
 					end
 				end
 			end
-		end)
+		end, uiid.playerPane)
 
-		local attributesPrimaryContainer = ui.createCategory(pane, i18n("Primary Attributes"))
-		for key, id in pairs(tes3.attribute) do
-			-- This function gets names from GMSTs which are capitalized.
-			local name = tes3.getAttributeName(id)
-			local input = mwse.mcm.createTextField(attributesPrimaryContainer, {
-				label = name,
-				variable = mwse.mcm.createCustom({
-					converter = tonumber,
-					getter = function(self)
-						return tes3.mobilePlayer[key].current
-					end,
-					setter = function(self, newValue)
-						if not newValue then return end
-						local msg = string.format(i18n("Set x to y"), name, newValue)
-						tes3.messageBox({ message = msg, duration = 3 })
-						tes3.setStatistic({ reference = tes3.player, attribute = id, current = newValue })
-					end
-				})
-			})
-			-- We don't want default messagebox.
-			--- @diagnostic disable-next-line: duplicate-set-field
-			input.callback = function() end
-
-			table.insert(mcmComponents, input)
-		end
-
-		local attributesDerivedContainer = ui.createCategory(pane, i18n("Derived Attributes"))
-		local derivedKeys = { "health", "magicka", "fatigue", "encumbrance" }
-		for _, key in ipairs(derivedKeys) do
-			local name = util.capitalize(i18n(key))
-			local input = mwse.mcm.createTextField(attributesDerivedContainer, {
-				label = name,
-				variable = mwse.mcm.createCustom({
-					converter = tonumber,
-					getter = function(self)
-						return math.round(tes3.mobilePlayer[key].current, 2)
-					end,
-					setter = function(self, newValue)
-						if not newValue then return end
-						local msg = string.format(i18n("Set x to y"), name, newValue)
-						tes3.messageBox({ message = msg, duration = 3 })
-						tes3.setStatistic({ reference = tes3.player, name = key, current = newValue })
-					end
-				})
-			})
-			-- We don't want default messagebox.
-			--- @diagnostic disable-next-line: duplicate-set-field
-			input.callback = function() end
-
-			table.insert(mcmComponents, input)
-		end
-
-		local skillsContainer = ui.createCategory(pane, i18n("Skills"))
-		for key, id in pairs(tes3.skill) do
-			-- This function gets names from GMSTs which are capitalized.
-			local name = tes3.getSkillName(id)
-			local input = mwse.mcm.createTextField(skillsContainer, {
-				label = name,
-				inGameOnly = true,
-				variable = mwse.mcm.createCustom({
-					converter = tonumber,
-					getter = function(self)
-						return tes3.mobilePlayer[key].current
-					end,
-					setter = function(self, newValue)
-						if not newValue then return end
-						local msg = string.format(i18n("Set x to y"), name, newValue)
-						tes3.messageBox({ message = msg, duration = 3 })
-						tes3.setStatistic({ reference = tes3.player, skill = id, current = newValue })
-					end
-				})
-			})
-			-- We don't want default messagebox.
-			--- @diagnostic disable-next-line: duplicate-set-field
-			input.callback = function() end
-
-			table.insert(mcmComponents, input)
-		end
+		ui.recreatePlayerPane(pane)
 	end
 
 	local itemsContainer = ui.createTabContainer(menu, tes3ui.registerID("CommandMenu_items_container"))
@@ -832,7 +835,7 @@ function ui.createMenu(objects)
 			jump = 1,
 		})
 
-		local pane = ui.createSearchPane(itemsContainer, ui.standardFilterHidden)
+		local pane = ui.createSearchPane(itemsContainer, standardFilterHidden)
 
 		for _, item in ipairs(objects.items) do
 			local select = pane:createTextSelect({ text = util.getNiceName(item) })
@@ -863,7 +866,7 @@ function ui.createMenu(objects)
 	local spellsContainer = ui.createTabContainer(menu, tes3ui.registerID("CommandMenu_spells_container"))
 	tabs.spellsContainer = spellsContainer
 	do -- Spells tab
-		local pane = ui.createSearchPane(spellsContainer, ui.standardFilterHidden)
+		local pane = ui.createSearchPane(spellsContainer, standardFilterHidden)
 
 		local spellTypeNames = table.invert(tes3.spellType)
 		for i, name in pairs(spellTypeNames) do
@@ -896,11 +899,11 @@ function ui.createMenu(objects)
 	do -- Soul Gems tab
 		-- Let's take common soul gem as starting gem, because the first one is Azura's star.
 		local startingGem = objects.soulGems[2]
-		local selectedGem = mwse.mcm.createVariable({
-			value = startingGem.id
+		local selectedGemVariable = mwse.mcm.createVariable({
+			value = startingGem
 		})
 
-		local selectedSoul = mwse.mcm.createVariable({
+		local selectedSoulVariable = mwse.mcm.createVariable({
 			value = util.getStartingCreature(objects.creatures, startingGem)
 		})
 
@@ -909,7 +912,7 @@ function ui.createMenu(objects)
 		for _, soulGem in ipairs(objects.soulGems) do
 			table.insert(options, {
 				label = soulGem.name,
-				value = soulGem.id
+				value = soulGem
 			})
 		end
 
@@ -920,29 +923,24 @@ function ui.createMenu(objects)
 		local dropDown = mwse.mcm.createDropdown(topBlock, {
 			label = i18n("Choose a Soul Gem:"),
 			options = options,
-			variable = selectedGem,
+			variable = selectedGemVariable,
 		})
 
 		local previewBlock = ui.createLeftRightBlock(topBlock,
 			tes3ui.registerID("CommandMenu_soulGems_top_block_previewContainer"))
-		local function recreateSoulGemPreview()
-			ui.recreateSoulGemPreview(previewBlock, util.getSoulGemById(objects.soulGems, selectedGem.value),
-				selectedSoul.value)
-		end
-		recreateSoulGemPreview()
 
+		ui.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
 		-- Update currently selected soul gem preview
 		dropDown.callback = function(self)
-			selectedSoul.value = util.getStartingCreature(
-				objects.creatures, util.getSoulGemById(objects.soulGems, selectedGem.value))
-			recreateSoulGemPreview()
+			selectedSoulVariable.value = util.getStartingCreature(objects.creatures, selectedGemVariable.value)
+			ui.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
 		end
 
 		soulGemsContainer:createLabel({
 			text = i18n("Choose a Soul:"),
 		})
 
-		local pane = ui.createSearchPane(soulGemsContainer, ui.standardFilterVisible)
+		local pane = ui.createSearchPane(soulGemsContainer, standardFilterVisible)
 		local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
 
 		for _, creature in ipairs(objects.creatures) do
@@ -950,13 +948,13 @@ function ui.createMenu(objects)
 				text = string.format("%s, (%d %s)", util.getNiceName(creature), creature.soul, pts)
 			})
 			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				local maxSoul = util.getSoulGemById(objects.soulGems, selectedGem.value).soulGemCapacity
+				local maxSoul = selectedGemVariable.value.soulGemCapacity
 				if creature.soul > maxSoul then
 					tes3.messageBox(i18n("Too large soul"))
 					return
 				end
-				selectedSoul.value = creature
-				recreateSoulGemPreview()
+				selectedSoulVariable.value = creature
+				ui.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
 				select:getTopLevelMenu():updateLayout()
 			end)
 		end
@@ -992,22 +990,22 @@ function ui.createMenu(objects)
 		-- This is the default view in teleport tab.
 		cellContainer.visible = true
 		do -- Teleport to Cell
-			local pane = ui.createSearchPane(cellContainer, ui.standardFilterVisible)
+			local pane = ui.createSearchPane(cellContainer, standardFilterVisible)
 
 			for _, cell in ipairs(objects.cells) do
 				local select = pane:createTextSelect({
 					text = cell.editorName
 				})
 				select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+					ui.closeMenu()
 					commands.teleport(cell)
-					ui.closeMenu(config)
 				end)
 			end
 		end
 
 		local npcContainer = ui.createTabContainer(teleportContainer, tes3ui.registerID("CommandMenu_teleport_npc_container"))
 		do -- Teleport to NPC
-			local pane = ui.createSearchPane(npcContainer, ui.standardFilterVisible)
+			local pane = ui.createSearchPane(npcContainer, standardFilterVisible)
 
 			local idFormat = i18n("Id") .. ": %q"
 			local locationFormat = i18n("Located at") .. ": %s"
@@ -1017,8 +1015,8 @@ function ui.createMenu(objects)
 					text = util.getNiceName(npc)
 				})
 				select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+					ui.closeMenu()
 					commands.teleport(npc)
-					ui.closeMenu(config)
 					-- TODO: add an option to teleport the npc in front of the player
 				end)
 				select:register(tes3.uiEvent.help, function(e)
@@ -1051,6 +1049,7 @@ function ui.createMenu(objects)
 	do -- Factions tab
 		local pane = ui.createSearchPane(factionsContainer, function(category, searchTerm, cleared)
 			local label = category:findChild("CategoryLabel")
+			--- @cast label tes3uiElement
 			if cleared then
 				category.visible = true
 			else
@@ -1062,22 +1061,9 @@ function ui.createMenu(objects)
 			end
 		end)
 
-		--- @param faction tes3faction
-		local function getFactionLabel(faction)
-			if not faction.playerJoined then
-				return i18n("Status: not a member.")
-			end
-			if faction.playerExpelled then
-				return i18n("Status: expelled.")
-			end
-			return string.format(i18n("Status: member, rank") .. ": %s.",
-				faction:getRankName(faction.playerRank)
-			)
-		end
-
 		for _, faction in ipairs(objects.factions) do
 			local container = ui.createCategory(pane, util.getNiceName(faction))
-			local label = container:createLabel({ text = getFactionLabel(faction) })
+			local label = container:createLabel({ text = util.getFactionLabel(faction) })
 			local buttonsBlock = ui.createLeftRightBlock(container)
 			buttonsBlock.borderAllSides = 4
 
@@ -1087,12 +1073,12 @@ function ui.createMenu(objects)
 			join:registerAfter(tes3.uiEvent.mouseClick, function(e)
 				if faction.playerJoined then
 					faction:leave()
-					label.text = getFactionLabel(faction)
+					label.text = util.getFactionLabel(faction)
 					join.text = i18n("Join")
 					return
 				end
 				faction:join()
-				label.text = getFactionLabel(faction)
+				label.text = util.getFactionLabel(faction)
 				join.text = i18n("Leave")
 			end)
 
@@ -1101,7 +1087,7 @@ function ui.createMenu(objects)
 			})
 			demote:registerAfter(tes3.uiEvent.mouseClick, function(e)
 				faction:demote()
-				label.text = getFactionLabel(faction)
+				label.text = util.getFactionLabel(faction)
 			end)
 
 			local promote = buttonsBlock:createButton({
@@ -1109,7 +1095,7 @@ function ui.createMenu(objects)
 			})
 			promote:registerAfter(tes3.uiEvent.mouseClick, function(e)
 				faction:promote()
-				label.text = getFactionLabel(faction)
+				label.text = util.getFactionLabel(faction)
 			end)
 
 			local expel = buttonsBlock:createButton({
@@ -1120,12 +1106,12 @@ function ui.createMenu(objects)
 				if faction.playerExpelled then
 					faction:clearExpel()
 					expel.text = i18n("Expel")
-					label.text = getFactionLabel(faction)
+					label.text = util.getFactionLabel(faction)
 					return
 				end
 				faction:expel()
 				expel.text = i18n("Rejoin")
-				label.text = getFactionLabel(faction)
+				label.text = util.getFactionLabel(faction)
 			end)
 		end
 	end
@@ -1241,7 +1227,7 @@ function ui.createMenu(objects)
 		local label = questsContainer:createLabel({ text = i18n("Choose a quest...") })
 		label.color = tes3ui.getPalette(tes3.palette.headerColor)
 
-		local questsPane = ui.createSearchPane(questsContainer, ui.standardFilterVisible)
+		local questsPane = ui.createSearchPane(questsContainer, standardFilterVisible)
 		questsPane.heightProportional = 2 / 3
 
 		local currentContainer = questsContainer:createThinBorder({ id = tes3ui.registerID("CommandMenu_quests_current_container") })
@@ -1264,18 +1250,15 @@ function ui.createMenu(objects)
 		recreateQuestInfosList(currentContainer, currentQuest)
 	end
 
-	do -- Done button
-		local doneContainer = ui.createLeftRightBlock(menu, tes3ui.registerID("CommandMenu_done_container"))
-		doneContainer.childAlignX = 1.0
+	-- Done button
+	local doneContainer = ui.createLeftRightBlock(menu, tes3ui.registerID("CommandMenu_done_container"))
+	doneContainer.childAlignX = 1.0
 
-		local done = doneContainer:createButton({
-			id = tes3ui.registerID(uiid.doneButton),
-			text = tes3.findGMST(tes3.gmst.sDone).value --[[@as string]]
-		})
-		done:registerAfter(tes3.uiEvent.mouseClick, function(e)
-			ui.closeMenu(config)
-		end)
-	end
+	local done = doneContainer:createButton({
+		id = tes3ui.registerID(uiid.doneButton),
+		text = tes3.findGMST(tes3.gmst.sClose).value --[[@as string]]
+	})
+	done:registerAfter(tes3.uiEvent.mouseClick, ui.closeMenu)
 
 	-- Create Tab buttons
 	local firstButton = ui.createTabButton(tabsButtonsContainer, i18n("General"), tabs, "generalContainer", i18n("General"))
@@ -1290,8 +1273,8 @@ function ui.createMenu(objects)
 	-- Show the first tab.
 	firstButton:triggerEvent(tes3.uiEvent.mouseClick)
 	menu:getTopLevelMenu():updateLayout()
-	rootElement.menu.visible = false
-	return { menu = rootElement.menu, mcmComponents = mcmComponents }
+	menuElements.menu.visible = false
+	return { menu = menuElements.menu }
 end
 
 function ui.isMenuOpen()
@@ -1305,8 +1288,7 @@ function ui.isMenuOpen()
 	return menu.visible
 end
 
---- @param menuMCMComponents mwseMCMSetting[]
-function ui.openMenu(menuMCMComponents)
+function ui.openMenu()
 	if tes3.onMainMenu() then
 		tes3.messageBox(i18n("Load a game to open Command Menu."))
 		return
@@ -1314,22 +1296,20 @@ function ui.openMenu(menuMCMComponents)
 	if ui.isMenuOpen() then return end
 	local menu = tes3ui.findMenu(menuID)
 	if not menu then
-		-- TODO: consider creating it here.
-		tes3.messageBox("No MENU found!")
+		log:warn("Command Menu not found.")
+		tes3.messageBox("Command Menu not found.")
 		return
 	end
 
+	-- Update the player page with current attribute/skill values.
+	local playerPane = menu:findChild(uiid.playerPane)
+	---	@cast playerPane tes3uiElement
+	ui.recreatePlayerPane(playerPane)
 	menu.visible = true
-	-- Force refresh of current vars. Necessary for the player tab.
-	for _, setting in ipairs(menuMCMComponents) do
-		setting:setVariableValue(setting.variable.value)
-	end
 	tes3ui.enterMenuMode(menuID)
 end
 
--- TODO consider removing the config parameter
---- @param config CommandMenu.config
-function ui.closeMenu(config)
+function ui.closeMenu()
 	local menu = tes3ui.findMenu(menuID)
 	if not menu then return end
 	mwse.saveConfig(config.fileName, config)

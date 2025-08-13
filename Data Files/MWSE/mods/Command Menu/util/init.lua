@@ -1,7 +1,21 @@
 local config = require("Command Menu.config")
 
+local i18n = mwse.loadTranslations("Command Menu")
 local log = mwse.Logger.new()
 local util = {}
+
+--- @param faction tes3faction
+function util.getFactionLabel(faction)
+	if not faction.playerJoined then
+		return i18n("Status: not a member.")
+	end
+	if faction.playerExpelled then
+		return i18n("Status: expelled.")
+	end
+	return string.format(i18n("Status: member, rank") .. ": %s.",
+		faction:getRankName(faction.playerRank)
+	)
+end
 
 --- https://stackoverflow.com/questions/2421695/first-character-uppercase-lua
 --- @param str string
@@ -34,21 +48,11 @@ end
 --- @param creatures tes3creature[]
 --- @param startingGem tes3misc
 function util.getStartingCreature(creatures, startingGem)
-	local maxSoul = startingGem.soulGemCapacity
+	local maxSoulSize = startingGem.soulGemCapacity
 	-- Make sure starting creature can fit into starting gem.
 	for _, creature in ipairs(creatures) do
-		if creature.soul <= maxSoul then
+		if creature.soul <= maxSoulSize then
 			return creature
-		end
-	end
-end
-
---- @param soulGems tes3misc[]
---- @param id string
-function util.getSoulGemById(soulGems, id)
-	for _, soulGem in ipairs(soulGems) do
-		if soulGem.id == id then
-			return soulGem
 		end
 	end
 end
