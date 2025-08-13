@@ -59,6 +59,7 @@ end
 
 local offset = tes3vector3.new(0, 128, 0)
 
+-- TODO fix
 function util.getPointInFrontOfPlayer()
 	local pos = tes3.player.position:copy()
 	local rot = tes3matrix33.new()
@@ -118,7 +119,7 @@ local function validItem(object)
 	return false
 end
 
---- @param object tes3object|tes3armor|tes3misc|tes3cell
+--- @param object tes3object|tes3armor|tes3misc|tes3cell|tes3faction
 local function filterDeprecated(object)
 	if not config.filterOutDeprecated then
 		return false
@@ -217,7 +218,9 @@ function util.getObjects()
 
 	local factions = objects.factions
 	for _, faction in ipairs (tes3.dataHandler.nonDynamicData.factions) do
-		table.insert(factions, faction)
+		if not filterDeprecated(faction) then
+			table.insert(factions, faction)
+		end
 	end
 	table.sort(factions, nameSorter)
 
