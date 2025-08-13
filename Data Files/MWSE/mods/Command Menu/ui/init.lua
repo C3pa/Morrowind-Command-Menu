@@ -282,6 +282,8 @@ local function standardFilterHidden(paneItem, searchTerm, cleared)
 	paneItem.visible = false
 end
 
+-- TODO: fix searching on player tab. When typing some search term and then clearing the search text,
+-- all the settings are hidden
 --- @param parent tes3uiElement
 --- Function called on each pane item. It should hide and show pane children that match given searchTerm
 --- (which is lowercase). Cleared is true when the search box text was cleared.
@@ -309,6 +311,132 @@ function ui.createSearchPane(parent, filter, id)
 	input:registerAfter(tes3.uiEvent.textUpdated, filterItems)
 
 	return pane
+end
+
+---@param npc tes3npc
+local function openTeleportMenuNPC(npc)
+	local name = util.getNiceName(npc)
+	tes3ui.showMessageMenu({
+		header = i18n("Do you wish to teleport to the NPC's location or teleport the NPC in front of yourself?"),
+		buttons = {
+			{
+				text = string.format(i18n("Teleport %s here"), name),
+				callback = function()
+					commands.teleportNPC(npc)
+				end,
+			}, {
+				text = string.format(i18n("Teleport to %s's location"), name),
+				callback = function()
+					ui.closeMenu()
+					commands.teleport(npc)
+				end
+			}
+		}
+	})
+end
+
+--- @param container tes3uiElement
+--- @param quest tes3quest
+local function recreateQuestInfosList(container, quest)
+	container:destroyChildren()
+	local dialogue = quest.dialogue[1]
+	local topContainer = ui.createTopBottomBlock(container)
+	topContainer.paddingAllSides = 8
+	local label = topContainer:createLabel({
+		text = string.format("%s: %s (%q)", i18n("Selected quest"), quest.id, dialogue.id)
+	})
+	label.color = tes3ui.getPalette(tes3.palette.bigNormalColor)
+
+	--- @param dialogue tes3dialogue
+	local function getCurrentIndexText(dialogue)
+		return string.format("%s: %s",
+			i18n("Current journal index"),
+			tes3.getJournalIndex({ id = dialogue })
+		)
+	end
+
+	local currentIndex = topContainer:createLabel({
+		text = getCurrentIndexText(dialogue)
+	})
+
+	local infosPane = ui.createSearchPane(container, function(paneItem, searchTerm, cleared)
+		if cleared then
+			paneItem.visible = true
+			return
+		end
+		local categoryLabel = paneItem.children[1]
+		if not categoryLabel then
+			return
+		end
+		if util.ciContains(categoryLabel.text, searchTerm) then
+			paneItem.visible = true
+			return
+		end
+		local journalIndex = paneItem.children[2].children[1]
+		if util.ciContains(journalIndex.text, searchTerm) then
+			paneItem.visible = true
+			return
+		end
+		paneItem.visible = false
+	end)
+
+	local len = #dialogue.info
+	for i, info in ipairs(dialogue.info) do
+		-- Text has '@' and '#' characters arount topic links. Remove them
+		local infoText = string.gsub(string.gsub(info.text, "@", ""), "#", "")
+		local container, text = ui.createCategory(infosPane, infoText)
+		container.consumeMouseEvents = false
+		text.color = tes3ui.getPalette(tes3.palette.normalColor)
+		text.consumeMouseEvents = false
+		text.wrapText = true
+
+		local journalIndex = container:createLabel({
+			text = string.format("%s: %d, %s: %s, %s: %s, %s: %s.",
+				i18n("Journal index"), info.journalIndex,
+				i18n("Quest name"), info.isQuestName,
+				i18n("Finished"), info.isQuestFinished,
+				i18n("Restart"), info.isQuestRestart
+			)
+		})
+		journalIndex.consumeMouseEvents = false
+		journalIndex.color = tes3ui.getPalette(tes3.palette.miscColor)
+
+		local lastEntry = i == len
+		if not lastEntry then
+			infosPane:createDivider()
+		end
+		local container = container.parent
+		container:registerAfter(tes3.uiEvent.mouseOver, function(e)
+			text.color = tes3ui.getPalette(tes3.palette.activeOverColor)
+			text:getTopLevelMenu():updateLayout()
+		end)
+		container:registerAfter(tes3.uiEvent.mouseLeave, function(e)
+			text.color = tes3ui.getPalette(tes3.palette.normalColor)
+			text:getTopLevelMenu():updateLayout()
+		end)
+		container:register(tes3.uiEvent.mouseDown, function(e)
+			text.color = tes3ui.getPalette(tes3.palette.activePressedColor)
+			text:getTopLevelMenu():updateLayout()
+		end)
+		container:register(tes3.uiEvent.mouseRelease, function(e)
+			text.color = tes3ui.getPalette(tes3.palette.activeOverColor)
+			text:getTopLevelMenu():updateLayout()
+		end)
+		container:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			if info.journalIndex == 0 then return end
+			dialogue:addToJournal({
+				index = info.journalIndex
+			})
+
+			tes3.setJournalIndex({
+				id = dialogue,
+				index = info.journalIndex,
+				showMessage = true,
+			})
+			currentIndex.text = getCurrentIndexText(dialogue)
+		end)
+	end
+	ui.updateLayoutTextWrapping(infosPane:getTopLevelMenu())
 end
 
 --- @class CommandMenu.ui.createHeadingMenu.params
@@ -849,9 +977,8 @@ function ui.createMenu(objects)
 			end)
 			select:register(tes3.uiEvent.help, function(e)
 				local tooltip = tes3ui.createTooltipMenu({ item = item })
-				local border = tooltip:createBlock()
-				border.autoWidth = true
-				border.autoHeight = true
+				local border = createAutoSizedBlock(tooltip)
+				border.childAlignX = 0.5
 				border.borderAllSides = 8
 				border.paddingAllSides = 8
 				local icon = border:createImage({ path = "icons\\" .. item.icon })
@@ -973,8 +1100,8 @@ function ui.createMenu(objects)
 			},
 			variable = current,
 			callback = function(self)
-				local cell = teleportContainer:findChild("CommandMenu_teleport_cell_container")
-				local NPC = teleportContainer:findChild("CommandMenu_teleport_npc_container")
+				local cell = teleportContainer:findChild("CommandMenu_teleport_cell_container") --[[@as tes3uiElement]]
+				local NPC = teleportContainer:findChild("CommandMenu_teleport_npc_container") --[[@as tes3uiElement]]
 				if current.value == 1 then
 					ui.showTab(cell)
 					ui.hideTab(NPC)
@@ -989,58 +1116,51 @@ function ui.createMenu(objects)
 			tes3ui.registerID("CommandMenu_teleport_cell_container"))
 		-- This is the default view in teleport tab.
 		cellContainer.visible = true
-		do -- Teleport to Cell
-			local pane = ui.createSearchPane(cellContainer, standardFilterVisible)
 
-			for _, cell in ipairs(objects.cells) do
-				local select = pane:createTextSelect({
-					text = cell.editorName
-				})
-				select:registerAfter(tes3.uiEvent.mouseClick, function(e)
-					ui.closeMenu()
-					commands.teleport(cell)
-				end)
-			end
+		-- Teleport to Cell
+		local pane = ui.createSearchPane(cellContainer, standardFilterVisible)
+		for _, cell in ipairs(objects.cells) do
+			local select = pane:createTextSelect({
+				text = cell.editorName
+			})
+			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+				ui.closeMenu()
+				commands.teleport(cell)
+			end)
 		end
 
+		-- Teleport to NPC
 		local npcContainer = ui.createTabContainer(teleportContainer, tes3ui.registerID("CommandMenu_teleport_npc_container"))
-		do -- Teleport to NPC
-			local pane = ui.createSearchPane(npcContainer, standardFilterVisible)
+		local pane = ui.createSearchPane(npcContainer, standardFilterVisible)
+		local idFormat = i18n("Id") .. ": %q"
+		local locationFormat = i18n("Located at") .. ": %s"
+		local deadFormat = i18n("Dead") .. ": %s"
+		for _, npc in ipairs(objects.npcs) do
+			local select = pane:createTextSelect({
+				text = util.getNiceName(npc)
+			})
+			select:registerAfter(tes3.uiEvent.mouseClick, function()
+				openTeleportMenuNPC(npc)
+			end)
+			select:register(tes3.uiEvent.help, function(e)
+				local tooltip = tes3ui.createTooltipMenu()
+				local npcRef = tes3.getReference(npc.id)
 
-			local idFormat = i18n("Id") .. ": %q"
-			local locationFormat = i18n("Located at") .. ": %s"
-			local deadFormat = i18n("Dead") .. ": %s"
-			for _, npc in ipairs(objects.npcs) do
-				local select = pane:createTextSelect({
-					text = util.getNiceName(npc)
+				local titleBlock = ui.createLeftRightBlock(tooltip)
+				titleBlock.childAlignX = 0.5
+				titleBlock.paddingAllSides = 8
+				local title = titleBlock:createLabel({ text = util.getNiceName(npc) })
+				title.color = tes3ui.getPalette(tes3.palette.bigHeaderColor)
+
+				local bodyBlock = ui.createTopBottomBlock(tooltip)
+				bodyBlock.childAlignX = 0
+				bodyBlock.paddingAllSides = 8
+				bodyBlock:createLabel({ text = string.format(idFormat, npcRef.id) })
+				bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
+				bodyBlock:createLabel({ text = string.format(deadFormat,
+					npcRef.isDead and tes3.findGMST(tes3.gmst.sYes).value or tes3.findGMST(tes3.gmst.sNo).value)
 				})
-				select:registerAfter(tes3.uiEvent.mouseClick, function(e)
-					ui.closeMenu()
-					commands.teleport(npc)
-					-- TODO: add an option to teleport the npc in front of the player
-				end)
-				select:register(tes3.uiEvent.help, function(e)
-					local tooltip = tes3ui.createTooltipMenu()
-					local npcRef = tes3.getReference(npc.id)
-
-					local titleBlock = ui.createLeftRightBlock(tooltip)
-					titleBlock.childAlignX = 0.5
-					titleBlock.paddingAllSides = 8
-					local title = titleBlock:createLabel({ text = util.getNiceName(npc) })
-					title.color = tes3ui.getPalette(tes3.palette.bigHeaderColor)
-
-					local bodyBlock = ui.createTopBottomBlock(tooltip)
-					bodyBlock.childAlignX = 0
-					bodyBlock.paddingAllSides = 8
-					bodyBlock:createLabel({ text = string.format(idFormat, npcRef.id) })
-					bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
-					bodyBlock:createLabel({
-						text = string.format(deadFormat,
-							npcRef.isDead and tes3.findGMST(tes3.gmst.sYes).value or tes3.findGMST(tes3.gmst.sNo).value
-						)
-					})
-				end)
-			end
+			end)
 		end
 	end
 
@@ -1120,110 +1240,6 @@ function ui.createMenu(objects)
 	tabs.questsContainer = questsContainer
 	do -- Quests tab
 		local currentQuest = tes3.worldController.quests[1]
-
-		--- @param container tes3uiElement
-		--- @param quest tes3quest
-		local function recreateQuestInfosList(container, quest)
-			local dialogue = quest.dialogue[1]
-			local topContainer = ui.createTopBottomBlock(container)
-			topContainer.paddingAllSides = 8
-			local label = topContainer:createLabel({
-				text = string.format("%s: %s (%q)", i18n("Selected quest"), quest.id, dialogue.id)
-			})
-			label.color = tes3ui.getPalette(tes3.palette.bigNormalColor)
-
-			--- @param dialogue tes3dialogue
-			local function getCurrentIndexText(dialogue)
-				return string.format("%s: %s",
-					i18n("Current journal index"),
-					tes3.getJournalIndex({ id = dialogue })
-				)
-			end
-
-			local currentIndex = topContainer:createLabel({
-				text = getCurrentIndexText(dialogue)
-			})
-
-			local infosPane = ui.createSearchPane(container, function(paneItem, searchTerm, cleared)
-				if cleared then
-					paneItem.visible = true
-					return
-				end
-				local categoryLabel = paneItem.children[1]
-				if not categoryLabel then
-					return
-				end
-				if util.ciContains(categoryLabel.text, searchTerm) then
-					paneItem.visible = true
-					return
-				end
-				local journalIndex = paneItem.children[2].children[1]
-				if util.ciContains(journalIndex.text, searchTerm) then
-					paneItem.visible = true
-					return
-				end
-				paneItem.visible = false
-			end)
-
-			local len = #dialogue.info
-			for i, info in ipairs(dialogue.info) do
-				-- Text has '@' and '#' characters arount topic links. Remove them
-				local infoText = string.gsub(string.gsub(info.text, "@", ""), "#", "")
-				local container, text = ui.createCategory(infosPane, infoText)
-				container.consumeMouseEvents = false
-				text.color = tes3ui.getPalette(tes3.palette.normalColor)
-				text.consumeMouseEvents = false
-				text.wrapText = true
-
-				local journalIndex = container:createLabel({
-					text = string.format("%s: %d, %s: %s, %s: %s, %s: %s.",
-						i18n("Journal index"), info.journalIndex,
-						i18n("Quest name"), info.isQuestName,
-						i18n("Finished"), info.isQuestFinished,
-						i18n("Restart"), info.isQuestRestart
-					)
-				})
-				journalIndex.consumeMouseEvents = false
-				journalIndex.color = tes3ui.getPalette(tes3.palette.miscColor)
-
-				local lastEntry = i == len
-				if not lastEntry then
-					infosPane:createDivider()
-				end
-				local container = container.parent
-				container:registerAfter(tes3.uiEvent.mouseOver, function(e)
-					text.color = tes3ui.getPalette(tes3.palette.activeOverColor)
-					text:getTopLevelMenu():updateLayout()
-				end)
-				container:registerAfter(tes3.uiEvent.mouseLeave, function(e)
-					text.color = tes3ui.getPalette(tes3.palette.normalColor)
-					text:getTopLevelMenu():updateLayout()
-				end)
-				container:register(tes3.uiEvent.mouseDown, function(e)
-					text.color = tes3ui.getPalette(tes3.palette.activePressedColor)
-					text:getTopLevelMenu():updateLayout()
-				end)
-				container:register(tes3.uiEvent.mouseRelease, function(e)
-					text.color = tes3ui.getPalette(tes3.palette.activeOverColor)
-					text:getTopLevelMenu():updateLayout()
-				end)
-				container:registerAfter(tes3.uiEvent.mouseClick, function(e)
-					if info.journalIndex == 0 then return end
-					dialogue:addToJournal({
-						index = info.journalIndex
-					})
-
-					tes3.setJournalIndex({
-						id = dialogue,
-						index = info.journalIndex,
-						showMessage = true,
-					})
-					currentIndex.text = getCurrentIndexText(dialogue)
-				end)
-			end
-			ui.updateLayoutTextWrapping(infosPane:getTopLevelMenu())
-		end
-
 		local label = questsContainer:createLabel({ text = i18n("Choose a quest...") })
 		label.color = tes3ui.getPalette(tes3.palette.headerColor)
 
@@ -1242,7 +1258,6 @@ function ui.createMenu(objects)
 			local select = questsPane:createTextSelect({ text = quest.id })
 			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 				currentQuest = quest
-				currentContainer:destroyChildren()
 				recreateQuestInfosList(currentContainer, currentQuest)
 			end)
 		end

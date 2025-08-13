@@ -10,8 +10,6 @@ local log = mwse.Logger.new({
 
 --- @type CommandMenu.objectsTable
 local objects = {}
---- @type mwseMCMSetting[]
-local menuMCMComponents
 
 dofile("Command Menu.mcm")
 
@@ -21,10 +19,8 @@ event.register(tes3.event.initialized, function()
 end)
 
 event.register(tes3.event.loaded, function()
-	local menu = ui.createMenu(objects)
+	ui.createMenu(objects)
 end)
--- TODO: figure out why I can't do doOnce
--- , { doOnce = true })
 
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function openMenu(e)
@@ -37,10 +33,10 @@ local function openMenu(e)
 
 	ui.openMenu()
 end
-
 event.register(tes3.event.keyDown, openMenu)
 event.register(tes3.event.mouseWheel, openMenu)
 event.register(tes3.event.mouseButtonDown, openMenu)
+
 
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function sampleLandscape(e)

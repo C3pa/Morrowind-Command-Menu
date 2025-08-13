@@ -101,6 +101,10 @@ return {
 	["Teleport to..."] = "Teleport to...",
 	["Cell"] = "Cell",
 	["NPC"] = "NPC",
+	["Do you wish to teleport to the NPC's location or teleport the NPC in front of yourself?"] =
+		"Do you wish to teleport to the NPC's location or teleport the NPC in front of yourself?",
+	["Teleport %s here"] = "Teleport %%s here",
+	["Teleport to %s's location"] = "Teleport to %%s's location",
 	-- In the hover tooltip over the NPC's location:
 		["Id"] = "Id",
 		["Located at"] = "Located at",
