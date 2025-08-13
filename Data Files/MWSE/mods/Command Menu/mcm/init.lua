@@ -71,9 +71,9 @@ local function registerModConfig()
 		restartRequired = true,
 	})
 
-	-- general:createLogLevelOptions({
-	-- 	configKey = "logLevel"
-	-- })
+	general:createLogLevelOptions({
+		configKey = "logLevel"
+	})
 end
 
 event.register(tes3.event.modConfigReady, registerModConfig)

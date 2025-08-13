@@ -48,7 +48,7 @@ local default = {
 }
 
 local config = mwse.loadConfig(fileName, default)
-config.version = "2.0.0"
+config.version = "2.2.0"
 config.default = default
 config.fileName = fileName
 

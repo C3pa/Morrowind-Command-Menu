@@ -1,7 +1,7 @@
 				Command Menu
 				By C3pa
 
-Version: 2.1.0
+Version: 2.2.0
 
 _________
 Contents
@@ -59,6 +59,12 @@ Bugfix: Fix stealing is not a crime option feature being on by default. Now, it'
 Bugfix: Fix a rare crash reported by alpharedwolfy.
 2.1.0
 Feature: Added compatibility with Right Click Menu Exit. Now, if that mod is present, you will also be able to close the Command Menu using right click.
+2.2.0
+Feature: Added the ability to teleport an NPC in front of the player.
+Feature: Added a button that will remove all the curses, diseases and spells from affecting the player.
+Feature: Made it possible to disable player collision selectively vs. mobiles and objects.
+Bugfix: Fixed deprecated TR factions showing up in the factions list when deprecated objects should be filtered out.
+Misc: Various code changes improving the menu design and code structure.
 
 ________
 Contact
