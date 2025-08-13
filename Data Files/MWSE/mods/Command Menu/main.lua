@@ -3,19 +3,18 @@ local ui = require("Command Menu.ui")
 local util = require("Command Menu.util")
 
 local i18n = mwse.loadTranslations("Command Menu")
-
-
---- @type CommandMenu.objectsTable
-local objects = {}
---- @type mwseMCMSetting[]
-local menuMCMComponents
 local log = mwse.Logger.new({
 	name = "Command Menu",
 	logLevel = config.logLevel
 })
 
-dofile("Command Menu.interop.mods")
+--- @type CommandMenu.objectsTable
+local objects = {}
+--- @type mwseMCMSetting[]
+local menuMCMComponents
+
 dofile("Command Menu.mcm")
+
 
 event.register(tes3.event.initialized, function()
 	objects = util.getObjects()
