@@ -1,4 +1,15 @@
+From Nexus:
+Thanks for this mod C3pa, it has many great features.
+If I may propose an additional function, in case you want to update it: how about not only beeing able to teleport TO an NPC but to GET the NPC teleported to the player. This would help to place NPC where you want to have them without the command spell. The function should utilise the "PositionCell" command and not the "PlaceAtPC" command as this doubles the NPC. Right now it can be done with a combination of commands like:
+1. player->GetPos x, y, z,
+2. "NPC"->PositionCell, -XXX, -XX, XXX, 0, "Cell Name"
+
 - Additional ideas:
+ - Make more engine mechanic settings tweakable:
+  - https://www.nexusmods.com/skyrimspecialedition/mods/85707
+  - https://www.nexusmods.com/fallout4/mods/37599
+  - https://www.nexusmods.com/fallout4/mods/33759
+
  - Big features:
   - Add a tab for global variables. Note: tes3.dataHandler.nonDynamicData.globals can't be iterated over with pairs
   - Spawn creature/NPC tab. Something similar to Axemagister's test menu.
