@@ -115,6 +115,14 @@ function this.rechargePowers()
 	end
 end
 
+function this.removeMagic()
+	tes3.removeEffects({ reference = tes3.player, castType = tes3.spellType.blight })
+	tes3.removeEffects({ reference = tes3.player, castType = tes3.spellType.disease })
+	tes3.removeEffects({ reference = tes3.player, castType = tes3.spellType.curse })
+	tes3.removeEffects({ reference = tes3.player, castType = tes3.spellType.spell })
+	tes3.updateMagicGUI({ reference = tes3.player })
+end
+
 function this.killHostiles()
 	if tes3.onMainMenu() then
 		return false

@@ -58,6 +58,10 @@ return {
 	["Open stats review menu"] = "Open stats review menu",
 	["Recharge player powers"] = "Recharge player powers",
 	["All powers recharged."] = "All powers recharged.",
+	["Remove magic"] = "Remove magic",
+	["Removed all curses, diseases and spells."] = "Removed all curses, diseases and spells.",
+	["Player can colide with other actors and projectiles?"] = "Player can colide with other actors and projectiles?",
+	["Player can colide with other objects?"] = "Player can colide with other objects?",
 
 
 	-- Player tab

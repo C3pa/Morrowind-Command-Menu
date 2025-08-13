@@ -922,6 +922,40 @@ function ui.createMenu(objects)
 				commands.rechargePowers()
 				tes3.messageBox(i18n("All powers recharged."))
 			end)
+
+			local removeMagic = container:createButton({
+				text = i18n("Remove magic")
+			})
+			removeMagic:registerAfter(tes3.uiEvent.mouseClick, function(e)
+				commands.removeMagic()
+				tes3.messageBox(i18n("Removed all curses, diseases and spells."))
+			end)
+
+			mwse.mcm.createOnOffButton(container, {
+				label = i18n("Player can colide with other actors and projectiles?"),
+				leftSide = true,
+				variable = mwse.mcm.createCustom({
+					getter = function(self)
+						return tes3.mobilePlayer.mobToMobCollision
+					end,
+					setter = function(self, newValue)
+						tes3.mobilePlayer.mobToMobCollision = newValue
+					end,
+				}),
+			})
+
+			mwse.mcm.createOnOffButton(container, {
+				label = i18n("Player can colide with other objects?"),
+				leftSide = true,
+				variable = mwse.mcm.createCustom({
+					getter = function(self)
+						return tes3.mobilePlayer.movementCollision
+					end,
+					setter = function(self, newValue)
+						tes3.mobilePlayer.movementCollision = newValue
+					end,
+				}),
+			})
 		end
 	end
 

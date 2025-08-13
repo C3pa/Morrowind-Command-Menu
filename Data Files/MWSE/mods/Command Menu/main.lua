@@ -57,7 +57,6 @@ event.register(tes3.event.keyDown, sampleLandscape)
 event.register(tes3.event.mouseWheel, sampleLandscape)
 event.register(tes3.event.mouseButtonDown, sampleLandscape)
 
-
 -- Disable combat feature.
 --- @param e combatStartEventData
 event.register(tes3.event.combatStart, function(e)
