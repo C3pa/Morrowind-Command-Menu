@@ -21,8 +21,8 @@ event.register(tes3.event.initialized, function()
 end)
 
 event.register(tes3.event.loaded, function()
-	local t = ui.createMenu(objects, config)
-	menuMCMComponents = t.mcmComponents
+	local menu = ui.createMenu(objects)
+	menuMCMComponents = menu.mcmComponents
 end)
 -- TODO: figure out why I can't do doOnce
 -- , { doOnce = true })
@@ -30,10 +30,12 @@ end)
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function openMenu(e)
 	if not tes3.isKeyEqual({ actual = e, expected = config.openMenuKey }) then return end
-	if tes3.onMainMenu() then
-		tes3.messageBox(i18n("Load a game to open Command Menu."))
+
+	if ui.isMenuOpen() then
+		ui.closeMenu(config)
 		return
 	end
+
 	ui.openMenu(menuMCMComponents)
 end
 

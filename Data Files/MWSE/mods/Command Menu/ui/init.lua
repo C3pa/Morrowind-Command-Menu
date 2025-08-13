@@ -1,4 +1,5 @@
 local commands = require("Command Menu.commands")
+local config = require("Command Menu.config")
 local uiid = require("Command Menu.ui.uiid")
 local util = require("Command Menu.util")
 
@@ -7,7 +8,7 @@ local menuID = tes3ui.registerID(uiid.menu)
 local ui = {}
 
 --- @param tab tes3uiElement
-function ui.hide(tab)
+function ui.hideTab(tab)
 	tab.visible = false
 	tab.autoHeight = false
 	tab.autoWidth = false
@@ -16,7 +17,7 @@ function ui.hide(tab)
 end
 
 --- @param tab tes3uiElement
-function ui.show(tab)
+function ui.showTab(tab)
 	tab.visible = true
 	tab.autoHeight = true
 	tab.autoWidth = true
@@ -26,22 +27,20 @@ end
 --- @param buttonText string The text on the new button.
 --- @param tabs table<string, tes3uiElement> A map of tab containers.
 --- @param currentTabKey string A key in `tabs` of a tab that will be made visible when the created button is clicked.
---- @param titleLabel tes3uiElement The menu title label.
 --- @param newTitle string The new title text.
 --- @return tes3uiElement button
-function ui.createTabButton(container, buttonText, tabs, currentTabKey, titleLabel, newTitle)
+function ui.createTabButton(container, buttonText, tabs, currentTabKey, newTitle)
 	local button = container:createButton({
 		id = tes3ui.registerID("CommandMenu_button_" .. buttonText),
 		text = buttonText,
 	})
+	local titleLabel = container:getTopLevelMenu():findChild(uiid.heading)
 	button:registerAfter(tes3.uiEvent.mouseClick, function(e)
 		-- Hide all the tabs and show the selected tab.
 		for _, tab in pairs(tabs) do
-			ui.hide(tab)
-			-- tab.visible = false
+			ui.hideTab(tab)
 		end
-		ui.show(tabs[currentTabKey])
-		-- tabs[currentTabKey].visible = true
+		ui.showTab(tabs[currentTabKey])
 		titleLabel.text = newTitle
 		container:getTopLevelMenu():updateLayout()
 	end)
@@ -259,7 +258,10 @@ function ui.createHeadingMenu(params)
 	headingBlock.childAlignX = 0.5
 	headingBlock.paddingAllSides = 8
 
-	local title = headingBlock:createLabel({ text = params.heading })
+	local title = headingBlock:createLabel({
+		id = tes3ui.registerID(uiid.heading),
+		text = params.heading
+	})
 	headingBlock:createDivider()
 
 	-- Main body
@@ -304,19 +306,16 @@ function ui.updateLayoutTextWrapping(menu)
 end
 
 
-
--- TODO consider removing the config parameter
 --- @param objects CommandMenu.objectsTable
---- @param config CommandMenu.config
-function ui.createMenu(objects, config)
-	local t = ui.createHeadingMenu({
+function ui.createMenu(objects)
+	local rootElement = ui.createHeadingMenu({
 		heading = i18n("Choose items to add"),
 		id = menuID,
 		minWidth = 500,
 		minHeight = 800,
 	})
 
-	local menu = t.body
+	local menu = rootElement.body
 
 	local tabsButtonsContainer = ui.createLeftRightBlock(menu)
 	tabsButtonsContainer.borderAllSides = 8
@@ -979,11 +978,11 @@ function ui.createMenu(objects, config)
 				local cell = teleportContainer:findChild("CommandMenu_teleport_cell_container")
 				local NPC = teleportContainer:findChild("CommandMenu_teleport_npc_container")
 				if current.value == 1 then
-					ui.show(cell)
-					ui.hide(NPC)
+					ui.showTab(cell)
+					ui.hideTab(NPC)
 				else
-					ui.hide(cell)
-					ui.show(NPC)
+					ui.hideTab(cell)
+					ui.showTab(NPC)
 				end
 			end
 		})
@@ -1279,32 +1278,43 @@ function ui.createMenu(objects, config)
 	end
 
 	-- Create Tab buttons
-	local firstButton = ui.createTabButton(
-		tabsButtonsContainer, i18n("General"), tabs, "generalContainer", t.title, i18n("General"))
-	ui.createTabButton(tabsButtonsContainer, i18n("Player"), tabs, "playerContainer", t.title, i18n("Player stats"))
-	ui.createTabButton(
-		tabsButtonsContainer, i18n("Items"), tabs, "itemsContainer", t.title, i18n("Choose items to add"))
-	ui.createTabButton(
-		tabsButtonsContainer, i18n("Spells"), tabs, "spellsContainer", t.title, i18n("Choose spells to learn"))
-	ui.createTabButton(
-		tabsButtonsContainer, i18n("Soul Gems"), tabs, "soulGemsContainer", t.title, i18n("Choose a soul gem to add"))
-	ui.createTabButton(tabsButtonsContainer, i18n("Teleport"), tabs, "teleportContainer", t.title, i18n("Teleport"))
-	ui.createTabButton(
-		tabsButtonsContainer, i18n("Factions"), tabs, "factionsContainer", t.title, i18n("Manage faction membership"))
-	ui.createTabButton(tabsButtonsContainer, i18n("Quests"), tabs, "questsContainer", t.title, i18n("Quests"))
+	local firstButton = ui.createTabButton(tabsButtonsContainer, i18n("General"), tabs, "generalContainer", i18n("General"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Player"), tabs, "playerContainer", i18n("Player stats"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Items"), tabs, "itemsContainer", i18n("Choose items to add"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Spells"), tabs, "spellsContainer", i18n("Choose spells to learn"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Soul Gems"), tabs, "soulGemsContainer", i18n("Choose a soul gem to add"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Teleport"), tabs, "teleportContainer", i18n("Teleport"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Factions"), tabs, "factionsContainer", i18n("Manage faction membership"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Quests"), tabs, "questsContainer", i18n("Quests"))
 
 	-- Show the first tab.
 	firstButton:triggerEvent(tes3.uiEvent.mouseClick)
 	menu:getTopLevelMenu():updateLayout()
-	t.menu.visible = false
-	return { menu = t.menu, mcmComponents = mcmComponents }
+	rootElement.menu.visible = false
+	return { menu = rootElement.menu, mcmComponents = mcmComponents }
+end
+
+function ui.isMenuOpen()
+	if not tes3.menuMode() then
+		return false
+	end
+	local menu = tes3ui.findMenu(menuID)
+	if not menu then
+		return false
+	end
+	return menu.visible
 end
 
 --- @param menuMCMComponents mwseMCMSetting[]
 function ui.openMenu(menuMCMComponents)
-	if tes3.onMainMenu() then return end
+	if tes3.onMainMenu() then
+		tes3.messageBox(i18n("Load a game to open Command Menu."))
+		return
+	end
+	if ui.isMenuOpen() then return end
 	local menu = tes3ui.findMenu(menuID)
 	if not menu then
+		-- TODO: consider creating it here.
 		tes3.messageBox("No MENU found!")
 		return
 	end

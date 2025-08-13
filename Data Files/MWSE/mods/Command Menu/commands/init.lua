@@ -143,8 +143,7 @@ function this.teleport(destination)
 	})
 end
 
-
-
+--- Teleports the NPC in front of the player.
 ---@param npc tes3npc
 function this.teleportNPC(npc)
 	local npcRef = tes3.getReference(npc.id)
