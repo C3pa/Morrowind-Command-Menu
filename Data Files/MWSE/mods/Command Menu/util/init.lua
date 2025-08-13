@@ -59,11 +59,10 @@ end
 
 local offset = tes3vector3.new(0, 128, 0)
 
--- TODO fix
 function util.getPointInFrontOfPlayer()
 	local pos = tes3.player.position:copy()
 	local rot = tes3matrix33.new()
-	rot:toRotationY(tes3.mobilePlayer.facing)
+	rot:toRotationZ(tes3.mobilePlayer.facing)
 	pos = pos + rot * offset
 	return pos
 end
