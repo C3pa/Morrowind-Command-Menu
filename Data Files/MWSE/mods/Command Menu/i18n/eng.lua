@@ -48,6 +48,18 @@ return {
 	["Change current weather:"] = "Change current weather:",
 	["Timescale"] = "Timescale",
 	["Simulation time scale"] = "Simulation time scale",
+	["weather"] = {
+		["Clear"] = "Clear",
+		["Cloudy"] = "Cloudy",
+		["Foggy"] = "Foggy",
+		["Overcast"] = "Overcast",
+		["Rain"] = "Rain",
+		["Thunder"] = "Thunder",
+		["Ash"] = "Ash",
+		["Blight"] = "Blight",
+		["Snow"] = "Snow",
+		["Blizzard"] = "Blizzard",
+	},
 
 	["Misc"] = "Misc",
 	["Reset actors"] = "Reset actors",
@@ -87,6 +99,12 @@ return {
 	["Spells"] = "Spells",
 	["Choose spells to learn"] = "Choose spells to learn",
 	["Learned"] = "Learned",
+	["Spell"] = "Spell",
+	["Ability"] = "Ability",
+	["Blight"] = "Blight",
+	["Disease"] = "Disease",
+	["Curse"] = "Curse",
+	["Power"] = "Power",
 
 
 	-- Soul Gems tab

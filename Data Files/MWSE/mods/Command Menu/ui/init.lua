@@ -822,8 +822,11 @@ function ui.createMenu(objects)
 
 			local weathers = {}
 			for weather, id in pairs(tes3.weather) do
-				table.insert(weathers, { label = util.capitalize(weather), value = id })
+				table.insert(weathers, { label = i18n("weather." .. util.capitalize(weather)), value = id })
 			end
+			table.sort(weathers, function(a, b)
+				return a.label < b.label
+			end)
 
 			mwse.mcm.createDropdown(container, {
 				label = i18n("Change current weather:"),
@@ -1038,7 +1041,7 @@ function ui.createMenu(objects)
 		for _, spell in ipairs(objects.spells) do
 			local select = pane:createTextSelect({
 				text = string.format("%s, (%s, %d %s)",
-					spell.name, spellTypeNames[spell.castType], spell.magickaCost, pts)
+					spell.name, i18n(spellTypeNames[spell.castType]), spell.magickaCost, pts)
 			})
 			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 				tes3.playSound({ sound = "spellmake success" })
