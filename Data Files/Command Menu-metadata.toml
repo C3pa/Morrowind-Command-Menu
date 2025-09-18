@@ -4,7 +4,7 @@ description = "A mod testing utility."
 homepage = "https://www.nexusmods.com/morrowind/mods/55193"
 repository = "https://github.com/C3pa/Morrowind-Command-Menu"
 authors = [ "C3pa" ]
-version = "2.2.0"
+version = "2.3.0"
 
 [dependencies.mwse]
 buildnumber = 4520

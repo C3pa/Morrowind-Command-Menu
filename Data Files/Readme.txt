@@ -1,7 +1,7 @@
 				Command Menu
 				By C3pa
 
-Version: 2.2.0
+Version: 2.3.0
 
 _________
 Contents
@@ -65,6 +65,8 @@ Feature: Added a button that will remove all the curses, diseases and spells fro
 Feature: Made it possible to disable player collision selectively vs. mobiles and objects.
 Bugfix: Fixed deprecated TR factions showing up in the factions list when deprecated objects should be filtered out.
 Misc: Various code changes improving the menu design and code structure.
+2.3.0
+Feature: Added French translation.
 
 ________
 Contact
