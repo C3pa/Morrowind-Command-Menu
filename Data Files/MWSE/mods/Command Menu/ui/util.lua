@@ -1,4 +1,4 @@
-local uiid = require("Command Menu.uiid")
+local uiid = require("Command Menu.ui.uiid")
 local util = require("Command Menu.util")
 
 
