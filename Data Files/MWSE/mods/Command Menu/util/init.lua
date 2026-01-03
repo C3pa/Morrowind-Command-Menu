@@ -32,13 +32,13 @@ end
 
 -- For "<Deprecated>", "<Template>", "< DEPRECATED >" etc.
 --- @param str string
-function util.isDeprecated(str)
+function util.isNameDeprecated(str)
 	return string.sub(str, 1, 1) == "<"
 end
 
 --- @param object tes3creature|tes3item|tes3faction|tes3npc
 function util.getNiceName(object)
-	if util.isDeprecated(object.name) then
+	if util.isNameDeprecated(object.name) then
 		return string.format("%s (%s)", object.name, object.id)
 	end
 	return object.name
@@ -87,44 +87,13 @@ function util.getTeleportPosition(cell)
 	return tes3vector3.new(cell.gridX * 8192 + 4096, cell.gridY * 8192 + 4096, -1000)
 end
 
-
-local itemTypes = {
-	[tes3.objectType.alchemy] = true,
-	[tes3.objectType.ammunition] = true,
-	[tes3.objectType.apparatus] = true,
-	[tes3.objectType.armor] = true,
-	[tes3.objectType.book] = true,
-	[tes3.objectType.clothing] = true,
-	[tes3.objectType.ingredient] = true,
-	[tes3.objectType.lockpick] = true,
-	[tes3.objectType.miscItem] = true,
-	[tes3.objectType.probe] = true,
-	[tes3.objectType.repairItem] = true,
-	[tes3.objectType.weapon] = true,
-}
-
---- @param item tes3object|tes3light
-local function carryableLight(item)
-	return item.objectType == tes3.objectType.light and item.canCarry
-end
-
---- @param object tes3object
-local function validItem(object)
-	if itemTypes[object.objectType]
-	or carryableLight(object) then
-		return true
-	end
-
-	return false
-end
-
 --- @param object tes3object|tes3armor|tes3misc|tes3cell|tes3faction
-local function filterDeprecated(object)
+local function isObjectDeprecated(object)
 	if not config.filterOutDeprecated then
 		return false
 	end
 
-	if object.name and util.isDeprecated(object.name) then
+	if object.name and util.isNameDeprecated(object.name) then
 		return true
 	end
 
@@ -183,7 +152,7 @@ function util.getObjects()
 	local npcs = objects.npcs
 	local items = objects.items
 	for _, object in ipairs(tes3.dataHandler.nonDynamicData.objects) do
-		if not filterDeprecated(object) then
+		if not isObjectDeprecated(object) then
 			if object.objectType == tes3.objectType.creature then
 				table.insert(creatures, object)
 			end
@@ -193,7 +162,7 @@ function util.getObjects()
 			if validNpc(object) then
 				table.insert(npcs, object)
 			end
-			if validItem(object) then
+			if object.isCarriable then
 				table.insert(items, object)
 			end
 		end
@@ -216,8 +185,8 @@ function util.getObjects()
 	table.sort(spells, nameSorter)
 
 	local factions = objects.factions
-	for _, faction in ipairs (tes3.dataHandler.nonDynamicData.factions) do
-		if not filterDeprecated(faction) then
+	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do
+		if not isObjectDeprecated(faction) then
 			table.insert(factions, faction)
 		end
 	end
