@@ -136,8 +136,6 @@ function util.getObjects()
 		soulGems = {},
 		--- @type tes3npc[]
 		npcs = {},
-		--- @type tes3cell[]
-		cells = {},
 		--- @type tes3faction[]
 		factions = {}
 	}
@@ -162,12 +160,6 @@ function util.getObjects()
 	table.sort(creatures, nameSorter)
 	table.sort(soulGems, nameSorter)
 	table.sort(npcs, nameSorter)
-
-	local cells = objects.cells
-	for _, cell in ipairs(tes3.dataHandler.nonDynamicData.cells) do
-		table.insert(cells, cell)
-	end
-	table.sort(cells, nameSorter)
 
 	local factions = objects.factions
 	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do

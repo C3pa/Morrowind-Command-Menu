@@ -651,9 +651,8 @@ local function openTeleportMenuNPC(npc)
 end
 
 ---@param container tes3uiElement
----@param cells tes3cell[]
 ---@param npcs tes3npc[]
-local function createTeleportTab(container, cells, npcs)
+local function createTeleportTab(container, npcs)
 	local current = mwse.mcm.createVariable({ value = 1 })
 
 	local dropDown = mwse.mcm.createDropdown(container, {
@@ -683,13 +682,14 @@ local function createTeleportTab(container, cells, npcs)
 
 	-- Teleport to Cell
 	local cellPane = uiUtil.createSearchPane(cellContainer, uiUtil.standardFilterVisible)
-	for _, cell in ipairs(cells) do
-		local select = cellPane:createTextSelect({
-			text = cell.editorName
-		})
+	for _, cell in ipairs(tes3.dataHandler.nonDynamicData.cells) do
+		local select = cellPane:createTextSelect({ text = cell.editorName })
+		local id = cell.id
+		local gridX = cell.gridX
+		local gridY = cell.gridY
 		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 			ui.closeMenu()
-			commands.teleport(cell)
+			commands.teleportToCell({ id = id, x = gridX, y = gridY })
 		end)
 	end
 
@@ -867,7 +867,7 @@ function ui.createMenu(objects)
 	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems, objects.creatures)
 
 	tabs.teleportContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_teleport_container"))
-	createTeleportTab(tabs.teleportContainer, objects.cells, objects.npcs)
+	createTeleportTab(tabs.teleportContainer, objects.npcs)
 
 	tabs.factionsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_factions_container"))
 	createFactionsTab(tabs.factionsContainer, objects.factions)

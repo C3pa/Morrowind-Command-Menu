@@ -1,6 +1,6 @@
 local util = require("Command Menu.util")
 
-local i18n = mwse.loadTranslations("Command Menu")
+local log = mwse.Logger.new()
 local this = {}
 
 --- @type tes3uiMenuController
@@ -131,6 +131,25 @@ function this.killHostiles()
 	for _, hostile in ipairs(tes3.mobilePlayer.hostileActors) do
 		hostile:kill()
 	end
+end
+
+---@class CommandMenu.commands.teleportToCell.params
+---@field id string?
+---@field x number?
+---@field y number?
+
+---@param params CommandMenu.commands.teleportToCell.params
+function this.teleportToCell(params)
+	local cell = tes3.getCell(params)
+	if not cell then
+		log:error("Couldn't find cell with provided data: %s", params)
+		return
+	end
+	local position = util.getTeleportPosition(cell)
+	tes3.positionCell({
+		cell = cell.isInterior and cell or { cell.gridX, cell.gridY },
+		position = position
+	})
 end
 
 --- Teleports the player to given Cell or NPC.
