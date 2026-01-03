@@ -633,6 +633,10 @@ local function createSoulGemTab(container, soulGems)
 
 		:: continue ::
 	end
+
+	pane:getContentElement():sortChildren(function(a, b)
+		return string.lower(a.text) < string.lower(b.text)
+	end)
 end
 
 
