@@ -515,6 +515,10 @@ local function createItemsTab(container)
 
 		::continue::
 	end
+
+	pane:getContentElement():sortChildren(function(a, b)
+		return a.text < b.text
+	end)
 end
 
 ---@param container tes3uiElement
