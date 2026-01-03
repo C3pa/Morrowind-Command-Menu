@@ -517,7 +517,7 @@ local function createItemsTab(container)
 	end
 
 	pane:getContentElement():sortChildren(function(a, b)
-		return a.text < b.text
+		return string.lower(a.text) < string.lower(b.text)
 	end)
 end
 
@@ -554,7 +554,7 @@ local function createSpellsTab(container)
 	end
 
 	pane:getContentElement():sortChildren(function(a, b)
-		return a.text < b.text
+		return string.lower(a.text) < string.lower(b.text)
 	end)
 end
 
@@ -692,6 +692,10 @@ local function createTeleportTab(container, npcs)
 			commands.teleportToCell({ id = id, x = gridX, y = gridY })
 		end)
 	end
+
+	cellPane:getContentElement():sortChildren(function(a, b)
+		return string.lower(a.text) < string.lower(b.text)
+	end)
 
 	-- Teleport to NPC
 	local npcContainer = uiUtil.createTabContainer(container,
