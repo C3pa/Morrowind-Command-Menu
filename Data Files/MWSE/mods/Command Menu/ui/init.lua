@@ -720,14 +720,8 @@ local function createTeleportTab(container, npcs)
 			openTeleportMenuNPC(npcId, name)
 		end)
 		select:register(tes3.uiEvent.help, function(e)
-			local tooltip = tes3ui.createTooltipMenu()
 			local npcRef = tes3.getReference(npcId)
-			local titleBlock = uiUtil.createLeftRightBlock(tooltip)
-			titleBlock.childAlignX = 0.5
-			titleBlock.paddingAllSides = 8
-			local title = titleBlock:createLabel({ text = name })
-			title.color = tes3ui.getPalette(tes3.palette.bigHeaderColor)
-
+			local tooltip = tes3ui.createTooltipMenu({ object = npcRef.object })
 			local bodyBlock = uiUtil.createTopBottomBlock(tooltip)
 			bodyBlock.childAlignX = 0
 			bodyBlock.paddingAllSides = 8
