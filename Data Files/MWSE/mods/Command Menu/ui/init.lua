@@ -522,8 +522,7 @@ local function createItemsTab(container)
 end
 
 ---@param container tes3uiElement
----@param spells tes3spell[]
-local function createSpellsTab(container, spells)
+local function createSpellsTab(container)
 	local pane = uiUtil.createSearchPane(container, uiUtil.standardFilterHidden)
 
 	local spellTypeNames = table.invert(tes3.spellType)
@@ -532,7 +531,10 @@ local function createSpellsTab(container, spells)
 	end
 	local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
 
-	for _, spell in ipairs(spells) do
+	for _, spell in ipairs(tes3.dataHandler.nonDynamicData.spells) do
+		local spellId = spell.id
+		local name = spell.name
+
 		local select = pane:createTextSelect({
 			text = string.format("%s, (%s, %d %s)",
 				spell.name, i18n(spellTypeNames[spell.castType]), spell.magickaCost, pts)
@@ -540,16 +542,17 @@ local function createSpellsTab(container, spells)
 		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 			tes3.playSound({ sound = "spellmake success" })
 			tes3.addSpell({
-				spell = spell,
+				spell = spellId,
 				reference = tes3.player,
 			})
-			tes3.messageBox(i18n("Learned") .. " %q.", spell.name)
+			tes3.messageBox(i18n("Learned") .. " %q.", name)
 		end)
 		select:register(tes3.uiEvent.help, function(e)
-			tes3ui.createTooltipMenu({ spell = spell })
+			tes3ui.createTooltipMenu({ spell = spellId })
 		end)
 		select.visible = false
 	end
+
 end
 
 -- There is some kind of layout issue where the soul gem preview isn't visible until first interaction on this tab.
@@ -856,7 +859,7 @@ function ui.createMenu(objects)
 
 	local spellsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_spells_container"))
 	tabs.spellsContainer = spellsContainer
-	createSpellsTab(tabs.spellsContainer, objects.spells)
+	createSpellsTab(tabs.spellsContainer)
 
 	tabs.soulGemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_soulGem_container"))
 	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems, objects.creatures)

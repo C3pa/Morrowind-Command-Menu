@@ -138,8 +138,6 @@ function util.getObjects()
 		npcs = {},
 		--- @type tes3cell[]
 		cells = {},
-		--- @type tes3spell[]
-		spells = {},
 		--- @type tes3faction[]
 		factions = {}
 	}
@@ -170,12 +168,6 @@ function util.getObjects()
 		table.insert(cells, cell)
 	end
 	table.sort(cells, nameSorter)
-
-	local spells = objects.spells
-	for _, spell in ipairs(tes3.dataHandler.nonDynamicData.spells) do
-		table.insert(spells, spell)
-	end
-	table.sort(spells, nameSorter)
 
 	local factions = objects.factions
 	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do
