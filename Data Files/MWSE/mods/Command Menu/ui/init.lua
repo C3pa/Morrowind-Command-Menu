@@ -492,7 +492,7 @@ local function createItemsTab(container, items)
 			tes3.messageBox(i18n("Added") .. " %d %q.", count.value, item.name)
 		end)
 		select:register(tes3.uiEvent.help, function(e)
-			local tooltip = tes3ui.createTooltipMenu({ item = item })
+			local tooltip = tes3ui.createTooltipMenu({ object = item })
 			local border = uiUtil.createAutoSizedBlock(tooltip)
 			border.childAlignX = 0.5
 			border.borderAllSides = 8
@@ -537,6 +537,7 @@ local function createSpellsTab(container, spells)
 	end
 end
 
+-- There is some kind of layout issue where the soul gem preview isn't visible until first interaction on this tab.
 ---@param container tes3uiElement
 ---@param soulGems tes3misc[]
 ---@param creatures tes3creature[]
