@@ -124,8 +124,6 @@ function util.getObjects()
 	local objects = {
 		--- @type tes3misc[]
 		soulGems = {},
-		--- @type tes3faction[]
-		factions = {}
 	}
 
 	-- Shorthands
@@ -138,14 +136,6 @@ function util.getObjects()
 		end
 	end
 	table.sort(soulGems, nameSorter)
-
-	local factions = objects.factions
-	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do
-		if not util.isObjectDeprecated(faction) then
-			table.insert(factions, faction)
-		end
-	end
-	table.sort(factions, nameSorter)
 
 	return objects
 end

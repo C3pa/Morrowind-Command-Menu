@@ -757,8 +757,7 @@ end
 
 
 ---@param container tes3uiElement
----@param factions tes3faction[]
-local function createFactionsTab(container, factions)
+local function createFactionsTab(container)
 	local pane = uiUtil.createSearchPane(container, function(category, searchTerm, cleared)
 		local label = category:findChild("CategoryLabel")
 		--- @cast label tes3uiElement
@@ -773,7 +772,11 @@ local function createFactionsTab(container, factions)
 		end
 	end)
 
-	for _, faction in ipairs(factions) do
+	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do
+		if util.isObjectDeprecated(faction) then
+			goto continue
+		end
+
 		local entryContainer = uiUtil.createCategory(pane, util.getNiceName(faction))
 		local label = entryContainer:createLabel({ text = util.getFactionLabel(faction) })
 		local buttonsBlock = uiUtil.createLeftRightBlock(entryContainer)
@@ -782,7 +785,9 @@ local function createFactionsTab(container, factions)
 		local join = buttonsBlock:createButton({
 			text = faction.playerJoined and i18n("Leave") or i18n("Join"),
 		})
+		local factionId = faction.id
 		join:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			local faction = tes3.getFaction(factionId)
 			if faction.playerJoined then
 				faction:leave()
 				label.text = util.getFactionLabel(faction)
@@ -798,6 +803,7 @@ local function createFactionsTab(container, factions)
 			text = i18n("Demote"),
 		})
 		demote:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			local faction = tes3.getFaction(factionId)
 			faction:demote()
 			label.text = util.getFactionLabel(faction)
 		end)
@@ -806,6 +812,7 @@ local function createFactionsTab(container, factions)
 			text = i18n("Promote"),
 		})
 		promote:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			local faction = tes3.getFaction(factionId)
 			faction:promote()
 			label.text = util.getFactionLabel(faction)
 		end)
@@ -814,6 +821,7 @@ local function createFactionsTab(container, factions)
 			text = faction.playerExpelled and i18n("Rejoin") or i18n("Expel")
 		})
 		expel:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			local faction = tes3.getFaction(factionId)
 			if not faction.playerJoined then return end
 			if faction.playerExpelled then
 				faction:clearExpel()
@@ -825,7 +833,15 @@ local function createFactionsTab(container, factions)
 			expel.text = i18n("Rejoin")
 			label.text = util.getFactionLabel(faction)
 		end)
+
+		::continue::
 	end
+
+	pane:getContentElement():sortChildren(function(a, b)
+		local labelA = a:findChild("CategoryLabel").text
+		local labelB = b:findChild("CategoryLabel").text
+		return string.lower(labelA) < string.lower(labelB)
+	end)
 end
 
 ---@param container tes3uiElement
@@ -895,7 +911,7 @@ function ui.createMenu(objects)
 	createTeleportTab(tabs.teleportContainer)
 
 	tabs.factionsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_factions_container"))
-	createFactionsTab(tabs.factionsContainer, objects.factions)
+	createFactionsTab(tabs.factionsContainer)
 
 	tabs.questsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_quests_container"))
 	createQuestsTab(tabs.questsContainer)
