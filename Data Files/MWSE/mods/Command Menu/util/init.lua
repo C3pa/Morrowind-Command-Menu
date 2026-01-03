@@ -88,7 +88,7 @@ function util.getTeleportPosition(cell)
 end
 
 --- @param object tes3object|tes3armor|tes3misc|tes3cell|tes3faction
-local function isObjectDeprecated(object)
+function util.isObjectDeprecated(object)
 	if not config.filterOutDeprecated then
 		return false
 	end
@@ -136,8 +136,6 @@ function util.getObjects()
 		soulGems = {},
 		--- @type tes3npc[]
 		npcs = {},
-		--- @type tes3misc[]|tes3armor[]
-		items = {},
 		--- @type tes3cell[]
 		cells = {},
 		--- @type tes3spell[]
@@ -150,9 +148,8 @@ function util.getObjects()
 	local creatures = objects.creatures
 	local soulGems = objects.soulGems
 	local npcs = objects.npcs
-	local items = objects.items
 	for _, object in ipairs(tes3.dataHandler.nonDynamicData.objects) do
-		if not isObjectDeprecated(object) then
+		if not util.isObjectDeprecated(object) then
 			if object.objectType == tes3.objectType.creature then
 				table.insert(creatures, object)
 			end
@@ -162,15 +159,11 @@ function util.getObjects()
 			if validNpc(object) then
 				table.insert(npcs, object)
 			end
-			if object.isCarriable then
-				table.insert(items, object)
-			end
 		end
 	end
 	table.sort(creatures, nameSorter)
 	table.sort(soulGems, nameSorter)
 	table.sort(npcs, nameSorter)
-	table.sort(items, nameSorter)
 
 	local cells = objects.cells
 	for _, cell in ipairs(tes3.dataHandler.nonDynamicData.cells) do
@@ -186,7 +179,7 @@ function util.getObjects()
 
 	local factions = objects.factions
 	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do
-		if not isObjectDeprecated(faction) then
+		if not util.isObjectDeprecated(faction) then
 			table.insert(factions, faction)
 		end
 	end

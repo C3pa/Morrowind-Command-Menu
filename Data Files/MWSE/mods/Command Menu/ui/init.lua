@@ -468,8 +468,7 @@ end
 
 
 ---@param container tes3uiElement
----@param items tes3armor[]|tes3misc[]
-local function createItemsTab(container, items)
+local function createItemsTab(container)
 	local count = mwse.mcm.createVariable({ value = 1 })
 	local slider = mwse.mcm.createSlider(container, {
 		label = i18n("No. items to add"),
@@ -480,29 +479,41 @@ local function createItemsTab(container, items)
 	})
 
 	local pane = uiUtil.createSearchPane(container, uiUtil.standardFilterHidden)
+	for _, object in ipairs(tes3.dataHandler.nonDynamicData.objects) do
+		if not object.isCarriable then
+			goto continue
+		end
+		---@cast object tes3item
+		if util.isObjectDeprecated(object) then
+			goto continue
+		end
+		local itemId = object.id
+		local name = util.getNiceName(object)
+		local iconPath = "icons\\" .. object.icon
 
-	for _, item in ipairs(items) do
-		local select = pane:createTextSelect({ text = util.getNiceName(item) })
+		local select = pane:createTextSelect({ text = name })
 		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 			tes3.addItem({
-				item = item,
+				item = itemId,
 				count = count.value,
-				reference = tes3.player,
+				reference = tes3.player
 			})
-			tes3.messageBox(i18n("Added") .. " %d %q.", count.value, item.name)
+			tes3.messageBox(i18n("Added") .. " %d %q.", count.value, name)
 		end)
 		select:register(tes3.uiEvent.help, function(e)
-			local tooltip = tes3ui.createTooltipMenu({ object = item })
+			local tooltip = tes3ui.createTooltipMenu({ object = itemId })
 			local border = uiUtil.createAutoSizedBlock(tooltip)
 			border.childAlignX = 0.5
 			border.borderAllSides = 8
 			border.paddingAllSides = 8
-			local icon = border:createImage({ path = "icons\\" .. item.icon })
+			local icon = border:createImage({ path = iconPath })
 			icon.imageScaleX = 2
 			icon.imageScaleY = 2
 			tooltip:updateLayout()
 		end)
 		select.visible = false
+
+		::continue::
 	end
 end
 
@@ -837,7 +848,7 @@ function ui.createMenu(objects)
 	createPlayerTab(tabs.playerContainer)
 
 	tabs.itemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_items_container"))
-	createItemsTab(tabs.itemsContainer, objects.items)
+	createItemsTab(tabs.itemsContainer)
 
 	local spellsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_spells_container"))
 	tabs.spellsContainer = spellsContainer
