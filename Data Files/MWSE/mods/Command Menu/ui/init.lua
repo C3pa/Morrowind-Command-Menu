@@ -860,8 +860,7 @@ function ui.createMenu(objects)
 	tabs.itemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_items_container"))
 	createItemsTab(tabs.itemsContainer)
 
-	local spellsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_spells_container"))
-	tabs.spellsContainer = spellsContainer
+	tabs.spellsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_spells_container"))
 	createSpellsTab(tabs.spellsContainer)
 
 	tabs.soulGemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_soulGem_container"))
