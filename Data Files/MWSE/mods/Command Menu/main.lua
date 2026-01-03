@@ -41,6 +41,7 @@ event.register(tes3.event.mouseButtonDown, openMenu)
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function sampleLandscape(e)
 	if not tes3.isKeyEqual({ actual = e, expected = config.sampleLandscapeKey }) then return end
+	if tes3.menuMode() then return end
 	local rayhit = tes3.rayTest({
 		position = tes3.getPlayerEyePosition(),
 		direction = tes3.getPlayerEyeVector(),
@@ -84,7 +85,7 @@ event.register(tes3.event.activate, function(e)
 	if not ref then return end
 	local object = ref.object
 	if not unlockable[object.objectType] then return end
-	if ref.lockNode then
+	if tes3.getLocked({ reference = ref }) then
 		tes3.playSound({ sound = "Open Lock" })
 	end
 	tes3.unlock({ reference = ref })
@@ -152,7 +153,7 @@ end)
 --- @param e lockPickEventData|trapDisarmEventData
 local function onLockPick(e)
 	if config.lockPickNotCrime and
-	not tes3.hasOwnershipAccess({ reference = tes3.player, target = e.reference }) then
+		not tes3.hasOwnershipAccess({ reference = tes3.player, target = e.reference }) then
 		tes3.setOwner({ reference = e.reference, remove = true })
 	end
 
