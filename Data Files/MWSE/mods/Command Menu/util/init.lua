@@ -44,17 +44,8 @@ function util.getNiceName(object)
 	return object.name
 end
 
---- Returns the first creature that can fit in given soul gem.
---- @param creatures tes3creature[]
---- @param startingGem tes3misc
-function util.getStartingCreature(creatures, startingGem)
-	local maxSoulSize = startingGem.soulGemCapacity
-	-- Make sure starting creature can fit into starting gem.
-	for _, creature in ipairs(creatures) do
-		if creature.soul <= maxSoulSize then
-			return creature
-		end
-	end
+function util.getStartingCreature()
+	return tes3.getObject("guar") --[[@as tes3creature]]
 end
 
 local offset = tes3vector3.new(0, 128, 0)
@@ -104,7 +95,7 @@ end
 function util.isValidNpc(object)
 	-- Filter out cloned actors so we don't have duplicates.
 	if object.objectType == tes3.objectType.npc and not object.isInstance then
-        -- Make sure we only list NPC eligible for teleporting that are placed in the in-game world.
+		-- Make sure we only list NPC eligible for teleporting that are placed in the in-game world.
 		-- TODO test if this significantly slows down the whole thing
 		if tes3.getReference(object.id) then
 			return true
@@ -131,8 +122,6 @@ end
 function util.getObjects()
 	--- @class CommandMenu.objectsTable
 	local objects = {
-		--- @type tes3creature[]
-		creatures = {},
 		--- @type tes3misc[]
 		soulGems = {},
 		--- @type tes3faction[]
@@ -140,21 +129,15 @@ function util.getObjects()
 	}
 
 	-- Shorthands
-	local creatures = objects.creatures
 	local soulGems = objects.soulGems
-	local npcs = objects.npcs
 	for _, object in ipairs(tes3.dataHandler.nonDynamicData.objects) do
 		if not util.isObjectDeprecated(object) then
-			if object.objectType == tes3.objectType.creature then
-				table.insert(creatures, object)
-			end
 			if object.objectType == tes3.objectType.miscItem and object.isSoulGem then
 				table.insert(soulGems, object)
 			end
 		end
 	end
-	table.sort(creatures, nameSorter)
-    table.sort(soulGems, nameSorter)
+	table.sort(soulGems, nameSorter)
 
 	local factions = objects.factions
 	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do

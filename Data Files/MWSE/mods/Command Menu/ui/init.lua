@@ -561,17 +561,14 @@ end
 -- There is some kind of layout issue where the soul gem preview isn't visible until first interaction on this tab.
 ---@param container tes3uiElement
 ---@param soulGems tes3misc[]
----@param creatures tes3creature[]
-local function createSoulGemTab(container, soulGems, creatures)
+local function createSoulGemTab(container, soulGems)
 	-- Let's take common soul gem as starting gem, because the first one is Azura's star.
 	local startingGem = soulGems[2]
 	local selectedGemVariable = mwse.mcm.createVariable({
 		value = startingGem
 	})
 
-	local selectedSoulVariable = mwse.mcm.createVariable({
-		value = util.getStartingCreature(creatures, startingGem)
-	})
+	local creatureVariable = mwse.mcm.createVariable({ value = util.getStartingCreature().id })
 
 	--- @type mwseMCMDropdownOption[]
 	local options = {}
@@ -597,11 +594,11 @@ local function createSoulGemTab(container, soulGems, creatures)
 		tes3ui.registerID("CommandMenu_soulGems_top_block_previewContainer"))
 	previewBlock.widthProportional = 1.3
 
-	uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, selectedSoulVariable.value.id)
+	uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, creatureVariable.value)
 	-- Update currently selected soul gem preview
 	dropDown.callback = function(self)
-		selectedSoulVariable.value = util.getStartingCreature(creatures, selectedGemVariable.value)
-		uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, selectedSoulVariable.value.id)
+		creatureVariable.value = util.getStartingCreature().id
+		uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, creatureVariable.value)
 	end
 
 	container:createLabel({
@@ -611,20 +608,30 @@ local function createSoulGemTab(container, soulGems, creatures)
 	local pane = uiUtil.createSearchPane(container, uiUtil.standardFilterVisible)
 	local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
 
-	for _, creature in ipairs(creatures) do
+	for _, creature in ipairs(tes3.dataHandler.nonDynamicData.objects) do
+		if creature.objectType ~= tes3.objectType.creature then
+			goto continue
+		end
+		---@cast creature tes3creature
+		if util.isObjectDeprecated(creature) then
+			goto continue
+		end
 		local name = util.getNiceName(creature)
 		local select = pane:createTextSelect({ text = string.format("%s, (%d %s)", name, creature.soul, pts) })
-
+		local soul = creature.soul
+		local creatureId = creature.id
 		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 			local maxSoul = selectedGemVariable.value.soulGemCapacity
-			if creature.soul > maxSoul then
+			if soul > maxSoul then
 				tes3.messageBox(i18n("Too large soul"))
 				return
 			end
-			selectedSoulVariable.value = creature
-			uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, selectedSoulVariable.value.id)
+			creatureVariable.value = creatureId
+			uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, creatureId)
 			select:getTopLevelMenu():updateLayout()
 		end)
+
+		:: continue ::
 	end
 end
 
@@ -878,7 +885,7 @@ function ui.createMenu(objects)
 	createSpellsTab(tabs.spellsContainer)
 
 	tabs.soulGemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_soulGem_container"))
-	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems, objects.creatures)
+	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems)
 
 	tabs.teleportContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_teleport_container"))
 	createTeleportTab(tabs.teleportContainer)
