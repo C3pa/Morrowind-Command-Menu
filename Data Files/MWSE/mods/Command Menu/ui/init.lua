@@ -591,15 +591,17 @@ local function createSoulGemTab(container, soulGems, creatures)
 		options = options,
 		variable = selectedGemVariable,
 	})
+	dropDown.elements.outerContainer.widthProportional = 0.7
 
 	local previewBlock = uiUtil.createLeftRightBlock(topBlock,
 		tes3ui.registerID("CommandMenu_soulGems_top_block_previewContainer"))
+	previewBlock.widthProportional = 1.3
 
-	uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
+	uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, selectedSoulVariable.value.id)
 	-- Update currently selected soul gem preview
 	dropDown.callback = function(self)
 		selectedSoulVariable.value = util.getStartingCreature(creatures, selectedGemVariable.value)
-		uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
+		uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, selectedSoulVariable.value.id)
 	end
 
 	container:createLabel({
@@ -610,9 +612,9 @@ local function createSoulGemTab(container, soulGems, creatures)
 	local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
 
 	for _, creature in ipairs(creatures) do
-		local select = pane:createTextSelect({
-			text = string.format("%s, (%d %s)", util.getNiceName(creature), creature.soul, pts)
-		})
+		local name = util.getNiceName(creature)
+		local select = pane:createTextSelect({ text = string.format("%s, (%d %s)", name, creature.soul, pts) })
+
 		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
 			local maxSoul = selectedGemVariable.value.soulGemCapacity
 			if creature.soul > maxSoul then
@@ -620,7 +622,7 @@ local function createSoulGemTab(container, soulGems, creatures)
 				return
 			end
 			selectedSoulVariable.value = creature
-			uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
+			uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value.id, selectedSoulVariable.value.id)
 			select:getTopLevelMenu():updateLayout()
 		end)
 	end
@@ -651,8 +653,7 @@ local function openTeleportMenuNPC(npcId, name)
 end
 
 ---@param container tes3uiElement
----@param npcs tes3npc[]
-local function createTeleportTab(container, npcs)
+local function createTeleportTab(container)
 	local current = mwse.mcm.createVariable({ value = 1 })
 
 	local dropDown = mwse.mcm.createDropdown(container, {
@@ -731,8 +732,8 @@ local function createTeleportTab(container, npcs)
 			bodyBlock.childAlignX = 0
 			bodyBlock.paddingAllSides = 8
 			bodyBlock:createLabel({ text = string.format(idFormat, npcRef.id) })
-            bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
-			bodyBlock:createLabel({ text = string.format(positionFormat, npcRef.position )})
+			bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
+			bodyBlock:createLabel({ text = string.format(positionFormat, npcRef.position) })
 			bodyBlock:createLabel({ text = string.format(disabledFormat, npcRef.disabled and yes or no) })
 			bodyBlock:createLabel({ text = string.format(deadFormat, npcRef.isDead and yes or no) })
 		end)
@@ -880,7 +881,7 @@ function ui.createMenu(objects)
 	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems, objects.creatures)
 
 	tabs.teleportContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_teleport_container"))
-	createTeleportTab(tabs.teleportContainer, objects.npcs)
+	createTeleportTab(tabs.teleportContainer)
 
 	tabs.factionsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_factions_container"))
 	createFactionsTab(tabs.factionsContainer, objects.factions)

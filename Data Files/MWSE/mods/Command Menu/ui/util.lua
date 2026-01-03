@@ -99,54 +99,52 @@ function uiUtil.createCategory(parent, labelText)
 end
 
 --- @param previewBlock tes3uiElement
---- @param currentSoulGem tes3misc
---- @param currentCreature tes3creature
-function uiUtil.recreateSoulGemPreview(previewBlock, currentSoulGem, currentCreature)
-	previewBlock:destroyChildren()
+--- @param soulGemId string
+--- @param creatureId string
+function uiUtil.recreateSoulGemPreview(previewBlock, soulGemId, creatureId)
+	local soulGem = tes3.getObject(soulGemId)
+	local creature = tes3.getObject(creatureId) --[[@as tes3creature]]
 
-	local grow = previewBlock:createBlock()
-	grow.autoHeight = true
-	grow.autoWidth = true
-	grow.widthProportional = 0.5
+	previewBlock:destroyChildren()
+	local grow = uiUtil.createTopBottomBlock(previewBlock)
+	grow.widthProportional = 0.1
 
 	-- Create icon
 	local icon = previewBlock:createImage({
-		path = "icons\\" .. currentSoulGem.icon
+		path = "icons\\" .. soulGem.icon
 	})
+	icon.widthProportional = 0.5
 	icon.imageScaleX = 2
 	icon.imageScaleY = 2
 	icon.borderLeft = 8
 	icon.borderRight = 16
 
 	-- Create labels
-	local labelsBlock = previewBlock:createBlock()
-	labelsBlock.autoHeight = true
-	labelsBlock.autoWidth = true
-	labelsBlock.flowDirection = tes3.flowDirection.topToBottom
+	local labelsBlock = uiUtil.createTopBottomBlock(previewBlock)
+	labelsBlock.widthProportional = 2.0
 
-	local nameLabel = labelsBlock:createLabel({
-		text = currentSoulGem.name
-	})
-
+	local nameLabel = labelsBlock:createLabel({ text = soulGem.name })
+	nameLabel.widthProportional = 1.0
 	local soulLabel = labelsBlock:createLabel({
 		text = string.format("%s (%d/%d)",
-			currentCreature.name,
-			currentCreature.soul,
-			currentSoulGem.soulGemCapacity
+			creature.name,
+			creature.soul,
+			soulGem.soulGemCapacity
 		)
 	})
+	soulLabel.widthProportional = 1.0
 	soulLabel.color = tes3ui.getPalette(tes3.palette.headerColor)
 
 	local addButton = labelsBlock:createButton({ text = i18n("Add") })
 	addButton.borderTop = 12
 	addButton:registerAfter(tes3.uiEvent.mouseClick, function(e)
 		tes3.addItem({
-			item = currentSoulGem,
-			soul = currentCreature,
+			item = soulGem,
+			soul = creature,
 			count = 1,
 			reference = tes3.player,
 		})
-		tes3.messageBox(i18n("Added") .. " %s (%s).", currentSoulGem.name, currentCreature.name)
+		tes3.messageBox(i18n("Added") .. " %s (%s).", soulGem.name, creature.name)
 	end)
 
 	previewBlock:getTopLevelMenu():updateLayout()
@@ -310,7 +308,6 @@ function uiUtil.createSearchPane(parent, filter, id)
 
 	return pane
 end
-
 
 --- @class CommandMenu.ui.createHeadingMenu.params
 --- @field id string|integer|nil
