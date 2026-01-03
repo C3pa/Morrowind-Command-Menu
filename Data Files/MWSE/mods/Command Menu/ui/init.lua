@@ -325,13 +325,14 @@ local function openTeleportMenuNPC(npc)
 					commands.teleportNPC(npc)
 				end,
 			}, {
-				text = string.format(i18n("Teleport to %s's location"), name),
-				callback = function()
+			text = string.format(i18n("Teleport to %s's location"), name),
+			callback = function()
 					ui.closeMenu()
 					commands.teleport(npc)
 				end
 			}
-		}
+        },
+        cancels = true
 	})
 end
 
@@ -512,7 +513,6 @@ function ui.updateLayoutTextWrapping(menu)
 	recurse(menu)
 	menu:updateLayout()
 end
-
 
 --- @param objects CommandMenu.objectsTable
 function ui.createMenu(objects)
@@ -1133,7 +1133,7 @@ function ui.createMenu(objects)
 			label = i18n("Teleport to..."),
 			options = {
 				{ label = i18n("Cell"), value = 1 },
-				{ label = i18n("NPC"), value = 2 },
+				{ label = i18n("NPC"),  value = 2 },
 			},
 			variable = current,
 			callback = function(self)
@@ -1167,7 +1167,8 @@ function ui.createMenu(objects)
 		end
 
 		-- Teleport to NPC
-		local npcContainer = ui.createTabContainer(teleportContainer, tes3ui.registerID("CommandMenu_teleport_npc_container"))
+		local npcContainer = ui.createTabContainer(teleportContainer,
+			tes3ui.registerID("CommandMenu_teleport_npc_container"))
 		local pane = ui.createSearchPane(npcContainer, standardFilterVisible)
 		local idFormat = i18n("Id") .. ": %q"
 		local locationFormat = i18n("Located at") .. ": %s"
@@ -1194,8 +1195,9 @@ function ui.createMenu(objects)
 				bodyBlock.paddingAllSides = 8
 				bodyBlock:createLabel({ text = string.format(idFormat, npcRef.id) })
 				bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
-				bodyBlock:createLabel({ text = string.format(deadFormat,
-					npcRef.isDead and tes3.findGMST(tes3.gmst.sYes).value or tes3.findGMST(tes3.gmst.sNo).value)
+				bodyBlock:createLabel({
+					text = string.format(deadFormat,
+						npcRef.isDead and tes3.findGMST(tes3.gmst.sYes).value or tes3.findGMST(tes3.gmst.sNo).value)
 				})
 			end)
 		end
@@ -1283,7 +1285,10 @@ function ui.createMenu(objects)
 		local questsPane = ui.createSearchPane(questsContainer, standardFilterVisible)
 		questsPane.heightProportional = 2 / 3
 
-		local currentContainer = questsContainer:createThinBorder({ id = tes3ui.registerID("CommandMenu_quests_current_container") })
+		local currentContainer = questsContainer:createThinBorder({
+			id = tes3ui.registerID(
+				"CommandMenu_quests_current_container")
+		})
 		currentContainer.autoHeight = true
 		currentContainer.autoWidth = true
 		currentContainer.widthProportional = 1.0
@@ -1313,13 +1318,16 @@ function ui.createMenu(objects)
 	done:registerAfter(tes3.uiEvent.mouseClick, ui.closeMenu)
 
 	-- Create Tab buttons
-	local firstButton = ui.createTabButton(tabsButtonsContainer, i18n("General"), tabs, "generalContainer", i18n("General"))
+	local firstButton = ui.createTabButton(tabsButtonsContainer, i18n("General"), tabs, "generalContainer",
+		i18n("General"))
 	ui.createTabButton(tabsButtonsContainer, i18n("Player"), tabs, "playerContainer", i18n("Player stats"))
 	ui.createTabButton(tabsButtonsContainer, i18n("Items"), tabs, "itemsContainer", i18n("Choose items to add"))
 	ui.createTabButton(tabsButtonsContainer, i18n("Spells"), tabs, "spellsContainer", i18n("Choose spells to learn"))
-	ui.createTabButton(tabsButtonsContainer, i18n("Soul Gems"), tabs, "soulGemsContainer", i18n("Choose a soul gem to add"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Soul Gems"), tabs, "soulGemsContainer",
+		i18n("Choose a soul gem to add"))
 	ui.createTabButton(tabsButtonsContainer, i18n("Teleport"), tabs, "teleportContainer", i18n("Teleport"))
-	ui.createTabButton(tabsButtonsContainer, i18n("Factions"), tabs, "factionsContainer", i18n("Manage faction membership"))
+	ui.createTabButton(tabsButtonsContainer, i18n("Factions"), tabs, "factionsContainer",
+		i18n("Manage faction membership"))
 	ui.createTabButton(tabsButtonsContainer, i18n("Quests"), tabs, "questsContainer", i18n("Quests"))
 
 	-- Show the first tab.
