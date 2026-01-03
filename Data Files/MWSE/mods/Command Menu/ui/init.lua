@@ -553,6 +553,9 @@ local function createSpellsTab(container)
 		select.visible = false
 	end
 
+	pane:getContentElement():sortChildren(function(a, b)
+		return a.text < b.text
+	end)
 end
 
 -- There is some kind of layout issue where the soul gem preview isn't visible until first interaction on this tab.
