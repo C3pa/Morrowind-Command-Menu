@@ -152,18 +152,11 @@ function this.teleportToCell(params)
 	})
 end
 
---- Teleports the player to given Cell or NPC.
---- @param destination tes3cell|tes3npc
-function this.teleport(destination)
-	local cell = destination
-	local position
-	if destination.objectType == tes3.objectType.npc then
-		local npcRef = tes3.getReference(destination.id)
-		cell = npcRef.cell
-		position = npcRef.position
-	end
-	--- @cast cell tes3cell
-	position = position or util.getTeleportPosition(cell)
+--- @param npcId string
+function this.teleportToNpc(npcId)
+	local npcRef = tes3.getReference(npcId)
+	local cell = npcRef.cell
+	local position = npcRef.position or util.getTeleportPosition(cell)
 	tes3.positionCell({
 		cell = cell.isInterior and cell or { cell.gridX, cell.gridY },
 		position = position
@@ -171,9 +164,9 @@ function this.teleport(destination)
 end
 
 --- Teleports the NPC in front of the player.
----@param npc tes3npc
-function this.teleportNPC(npc)
-	local npcRef = tes3.getReference(npc.id)
+---@param npcId string
+function this.teleportNPC(npcId)
+	local npcRef = tes3.getReference(npcId)
 	local position = util.getPointInFrontOfPlayer()
 	local cell = tes3.player.cell
 	tes3.positionCell({

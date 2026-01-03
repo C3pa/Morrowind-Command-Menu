@@ -627,22 +627,22 @@ local function createSoulGemTab(container, soulGems, creatures)
 end
 
 
----@param npc tes3npc
-local function openTeleportMenuNPC(npc)
-	local name = util.getNiceName(npc)
+---@param npcId string
+---@param name string
+local function openTeleportMenuNPC(npcId, name)
 	tes3ui.showMessageMenu({
 		header = i18n("Do you wish to teleport to the NPC's location or teleport the NPC in front of yourself?"),
 		buttons = {
 			{
 				text = string.format(i18n("Teleport %s here"), name),
 				callback = function()
-					commands.teleportNPC(npc)
+					commands.teleportNPC(npcId)
 				end,
 			}, {
 			text = string.format(i18n("Teleport to %s's location"), name),
 			callback = function()
 				ui.closeMenu()
-				commands.teleport(npc)
+				commands.teleportToNpc(npcId)
 			end
 		}
 		},
@@ -704,21 +704,28 @@ local function createTeleportTab(container, npcs)
 	local idFormat = i18n("Id") .. ": %q"
 	local locationFormat = i18n("Located at") .. ": %s"
 	local deadFormat = i18n("Dead") .. ": %s"
-	for _, npc in ipairs(npcs) do
-		local select = npcPane:createTextSelect({
-			text = util.getNiceName(npc)
-		})
+
+	for _, npc in ipairs(tes3.dataHandler.nonDynamicData.objects) do
+		if not util.isValidNpc(npc) then
+			goto continue
+		end
+		---@cast npc tes3npc
+		if util.isObjectDeprecated(npc) then
+			goto continue
+		end
+		local npcId = npc.id
+		local name = util.getNiceName(npc)
+		local select = npcPane:createTextSelect({ text = name })
 		select:registerAfter(tes3.uiEvent.mouseClick, function()
-			openTeleportMenuNPC(npc)
+			openTeleportMenuNPC(npcId, name)
 		end)
 		select:register(tes3.uiEvent.help, function(e)
 			local tooltip = tes3ui.createTooltipMenu()
-			local npcRef = tes3.getReference(npc.id)
-
+			local npcRef = tes3.getReference(npcId)
 			local titleBlock = uiUtil.createLeftRightBlock(tooltip)
 			titleBlock.childAlignX = 0.5
 			titleBlock.paddingAllSides = 8
-			local title = titleBlock:createLabel({ text = util.getNiceName(npc) })
+			local title = titleBlock:createLabel({ text = name })
 			title.color = tes3ui.getPalette(tes3.palette.bigHeaderColor)
 
 			local bodyBlock = uiUtil.createTopBottomBlock(tooltip)
@@ -731,7 +738,11 @@ local function createTeleportTab(container, npcs)
 					npcRef.isDead and tes3.findGMST(tes3.gmst.sYes).value or tes3.findGMST(tes3.gmst.sNo).value)
 			})
 		end)
+		::continue::
 	end
+	npcPane:getContentElement():sortChildren(function(a, b)
+		return string.lower(a.text) < string.lower(b.text)
+	end)
 end
 
 

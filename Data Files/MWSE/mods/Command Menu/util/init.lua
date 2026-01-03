@@ -101,10 +101,11 @@ function util.isObjectDeprecated(object)
 end
 
 --- @param object tes3object|tes3npc
-local function validNpc(object)
+function util.isValidNpc(object)
 	-- Filter out cloned actors so we don't have duplicates.
 	if object.objectType == tes3.objectType.npc and not object.isInstance then
-		-- Make sure we only list NPC eligible for teleporting that are placed in the in-game world.
+        -- Make sure we only list NPC eligible for teleporting that are placed in the in-game world.
+		-- TODO test if this significantly slows down the whole thing
 		if tes3.getReference(object.id) then
 			return true
 		end
@@ -134,8 +135,6 @@ function util.getObjects()
 		creatures = {},
 		--- @type tes3misc[]
 		soulGems = {},
-		--- @type tes3npc[]
-		npcs = {},
 		--- @type tes3faction[]
 		factions = {}
 	}
@@ -152,14 +151,10 @@ function util.getObjects()
 			if object.objectType == tes3.objectType.miscItem and object.isSoulGem then
 				table.insert(soulGems, object)
 			end
-			if validNpc(object) then
-				table.insert(npcs, object)
-			end
 		end
 	end
 	table.sort(creatures, nameSorter)
-	table.sort(soulGems, nameSorter)
-	table.sort(npcs, nameSorter)
+    table.sort(soulGems, nameSorter)
 
 	local factions = objects.factions
 	for _, faction in ipairs(tes3.dataHandler.nonDynamicData.factions) do
