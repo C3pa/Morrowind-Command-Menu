@@ -11,6 +11,600 @@ local menuID = tes3ui.registerID(uiid.menu)
 local ui = {}
 
 
+---@param container tes3uiElement
+local function createGeneralTab(container)
+	local pane = container:createVerticalScrollPane()
+	pane.autoHeight = true
+	pane.heightProportional = 1.0
+
+	local contentsBlock = uiUtil.createTopBottomBlock(pane)
+
+	do -- Engine settings category
+		local container = uiUtil.createCategory(contentsBlock, i18n("Engine settings"))
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("God mode"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.menuController.godModeEnabled
+				end,
+				setter = function(self, newValue)
+					commands.setGodMode(newValue)
+				end,
+			}),
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Collision"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return not tes3.worldController.menuController.collisionDisabled
+				end,
+				setter = function(self, newValue)
+					commands.setCollsion(newValue)
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Vanity mode"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.getVanityMode()
+				end,
+				setter = function(self, newValue)
+					commands.setVanityMode(newValue)
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("AI enabled"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return not tes3.worldController.menuController.aiDisabled
+				end,
+				setter = function(self, newValue)
+					commands.setAI(newValue)
+				end,
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Fog of war on local map"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return not tes3.worldController.menuController.fogOfWarDisabled
+				end,
+				setter = function(self, newValue)
+					commands.setFogOfWar(newValue)
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Wireframe mode"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.menuController.wireframeEnabled
+				end,
+				setter = function(self, newValue)
+					commands.setWireframe(newValue)
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Draw cell borders"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.menuController.bordersEnabled
+				end,
+				setter = function(self, newValue)
+					tes3.worldController.menuController.bordersEnabled = newValue
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Draw collision boxes"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.menuController.collisionBoxesEnabled
+				end,
+				setter = function(self, newValue)
+					tes3.worldController.menuController.collisionBoxesEnabled = newValue
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Draw path grid nodes"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.menuController.pathGridShown
+				end,
+				setter = function(self, newValue)
+					tes3.worldController.menuController.pathGridShown = newValue
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Teleportation spells enabled"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return not tes3.worldController.flagTeleportingDisabled
+				end,
+				--- @param newValue boolean
+				setter = function(self, newValue)
+					tes3.worldController.flagTeleportingDisabled = not newValue
+				end
+			})
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Levitation spells enabled"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return not tes3.worldController.flagLevitationDisabled
+				end,
+				--- @param newValue boolean
+				setter = function(self, newValue)
+					tes3.worldController.flagLevitationDisabled = not newValue
+				end
+			})
+		})
+	end
+
+	do -- Mechanics
+		local container = uiUtil.createCategory(contentsBlock, i18n("Mechanics"))
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Combat enabled"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "combatEnabled" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Rest interrupt enabled"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "restInterruptEnabled" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Essential actors can't be damaged"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "blockDamageForEssentialActors" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Always hit"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "alwaysHit" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Casting always succeeds"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "castingAlwaysSucceeds" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Spells don't consume magicka"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "spellsConsumeNoMagicka" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Enchantments don't consume charge"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "enchantmentsConsumeNoCharge" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Brewing potions always succeeds"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "potionBrewingAlwaysSucceeds" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Self-repairing equipment always succeeds"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "repairingAlwaysSucceeds" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Picking locks always succeeds"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "lockPickAlwaysSucceeds" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Player doesn't recieve Sun Damage as a Vampire"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "blockSunDamage" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Fatiguesless jumping"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "fatiguelessJumping" })
+		})
+	end
+
+	do -- Security & Crime
+		local container = uiUtil.createCategory(contentsBlock, i18n("Security & Crime"))
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Auto unlock doors and containers"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "unlockEnabled" })
+		})
+
+		local function getBountyLabel()
+			local bounty = 0
+			if tes3.mobilePlayer then
+				bounty = tes3.mobilePlayer.bounty
+			end
+			return string.format(i18n("Current player bounty") .. " = %s.", bounty)
+		end
+
+		mwse.mcm.createButton(container, {
+			label = getBountyLabel(),
+			buttonText = i18n("Clear bounty"),
+			postCreate = function(self)
+				self.label = getBountyLabel()
+				self.elements.label.text = getBountyLabel()
+			end,
+			callback = function(self)
+				commands.clearBounty()
+				self:postCreate()
+			end
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Stealing owned items is not a crime"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "stealingFree" })
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Picking locks isn't considered a crime"),
+			leftSide = true,
+			variable = mwse.mcm.createTableVariable({ table = config, id = "lockPickNotCrime" })
+		})
+
+		mwse.mcm.createButton(container, {
+			label = i18n("Clear stolen flag on items in player's inventory"),
+			buttonText = i18n("Clear"),
+			callback = function(self)
+				commands.clearStolenFlag()
+				tes3.messageBox(i18n("Stolen flag cleared."))
+			end
+		})
+	end
+
+	do -- Time & Weather
+		local container = uiUtil.createCategory(contentsBlock, i18n("Time & Weather"))
+
+		local weathers = {}
+		for weather, id in pairs(tes3.weather) do
+			table.insert(weathers, { label = i18n("weather." .. util.capitalize(weather)), value = id })
+		end
+		table.sort(weathers, function(a, b)
+			return a.label < b.label
+		end)
+
+		mwse.mcm.createDropdown(container, {
+			label = i18n("Change current weather:"),
+			options = weathers,
+			variable = mwse.mcm.createCustom({
+				getter = function()
+					return tes3.getCurrentWeather().index or 0
+				end,
+				setter = function(self, newVal)
+					tes3.worldController.weatherController:switchImmediate(newVal)
+				end
+			})
+		})
+
+		mwse.mcm.createTextField(container, {
+			label = i18n("Timescale"),
+			-- TODO: might want to save the changes to timescale
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.timescale.value
+				end,
+				converter = tonumber,
+				setter = function(self, newValue)
+					tes3.worldController.timescale.value = newValue
+				end,
+
+			})
+		})
+
+		mwse.mcm.createSlider(container, {
+			label = i18n("Simulation time scale"),
+			min = 0.5,
+			max = 2.0,
+			jump = 0.01,
+			decimalPlaces = 2,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.worldController.simulationTimeScalar
+				end,
+				setter = function(self, newValue)
+					tes3.worldController.simulationTimeScalar = newValue
+				end
+			})
+		})
+	end
+
+	do -- Misc
+		local container = uiUtil.createCategory(contentsBlock, i18n("Misc"))
+
+		local resetActors = container:createButton({
+			text = i18n("Reset actors")
+		})
+		resetActors:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.resetActors()
+		end)
+
+		local fixMe = container:createButton({
+			text = i18n("Fix me")
+		})
+		fixMe:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.fixMe()
+		end)
+
+		local killHostiles = container:createButton({
+			text = i18n("Kill hostiles")
+		})
+		killHostiles:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.killHostiles()
+		end)
+
+		local fillMap = container:createButton({
+			text = i18n("Show all map markers")
+		})
+		fillMap:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.fillMap()
+		end)
+
+		local fillJournal = container:createButton({
+			text = i18n("Fill journal")
+		})
+		fillJournal:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.fillJournal()
+		end)
+
+		local statsReview = container:createButton({
+			text = i18n("Open stats review menu")
+		})
+		statsReview:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.enableStatReviewMenu()
+		end)
+
+		local rechargePowers = container:createButton({
+			text = i18n("Recharge player powers")
+		})
+		rechargePowers:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.rechargePowers()
+			tes3.messageBox(i18n("All powers recharged."))
+		end)
+
+		local removeMagic = container:createButton({
+			text = i18n("Remove magic")
+		})
+		removeMagic:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			commands.removeMagic()
+			tes3.messageBox(i18n("Removed all curses, diseases and spells."))
+		end)
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Player can colide with other actors and projectiles?"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.mobilePlayer.mobToMobCollision
+				end,
+				setter = function(self, newValue)
+					tes3.mobilePlayer.mobToMobCollision = newValue
+				end,
+			}),
+		})
+
+		mwse.mcm.createOnOffButton(container, {
+			label = i18n("Player can colide with other objects?"),
+			leftSide = true,
+			variable = mwse.mcm.createCustom({
+				getter = function(self)
+					return tes3.mobilePlayer.movementCollision
+				end,
+				setter = function(self, newValue)
+					tes3.mobilePlayer.movementCollision = newValue
+				end,
+			}),
+		})
+	end
+end
+
+---@param container tes3uiElement
+local function createPlayerTab(container)
+	local pane = uiUtil.createSearchPane(container, function(category, searchTerm, cleared)
+		local contentsContainer = category:findChild("ContentsContainer")
+		---@cast contentsContainer tes3uiElement
+		for _, statBlock in ipairs(contentsContainer.children) do
+			local labelBlock = statBlock:findChild("LabelBlock")
+			---@cast labelBlock tes3uiElement
+			local label = labelBlock.children[1]
+			local statContainer = labelBlock.parent
+			if cleared then
+				statContainer.visible = true
+			else
+				if util.ciContains(label.text, searchTerm) then
+					statContainer.visible = true
+				else
+					statContainer.visible = false
+				end
+			end
+		end
+	end, uiid.playerPane)
+
+	uiUtil.recreatePlayerPane(pane)
+end
+
+
+---@param container tes3uiElement
+---@param items tes3armor[]|tes3misc[]
+local function createItemsTab(container, items)
+	local count = mwse.mcm.createVariable({ value = 1 })
+	local slider = mwse.mcm.createSlider(container, {
+		label = i18n("No. items to add"),
+		variable = count,
+		min = 1,
+		max = 10,
+		jump = 1,
+	})
+
+	local pane = uiUtil.createSearchPane(container, uiUtil.standardFilterHidden)
+
+	for _, item in ipairs(items) do
+		local select = pane:createTextSelect({ text = util.getNiceName(item) })
+		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			tes3.addItem({
+				item = item,
+				count = count.value,
+				reference = tes3.player,
+			})
+			tes3.messageBox(i18n("Added") .. " %d %q.", count.value, item.name)
+		end)
+		select:register(tes3.uiEvent.help, function(e)
+			local tooltip = tes3ui.createTooltipMenu({ item = item })
+			local border = uiUtil.createAutoSizedBlock(tooltip)
+			border.childAlignX = 0.5
+			border.borderAllSides = 8
+			border.paddingAllSides = 8
+			local icon = border:createImage({ path = "icons\\" .. item.icon })
+			icon.imageScaleX = 2
+			icon.imageScaleY = 2
+			tooltip:updateLayout()
+		end)
+		select.visible = false
+	end
+end
+
+---@param container tes3uiElement
+---@param spells tes3spell[]
+local function createSpellsTab(container, spells)
+	local pane = uiUtil.createSearchPane(container, uiUtil.standardFilterHidden)
+
+	local spellTypeNames = table.invert(tes3.spellType)
+	for i, name in pairs(spellTypeNames) do
+		spellTypeNames[i] = util.capitalize(name)
+	end
+	local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
+
+	for _, spell in ipairs(spells) do
+		local select = pane:createTextSelect({
+			text = string.format("%s, (%s, %d %s)",
+				spell.name, i18n(spellTypeNames[spell.castType]), spell.magickaCost, pts)
+		})
+		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			tes3.playSound({ sound = "spellmake success" })
+			tes3.addSpell({
+				spell = spell,
+				reference = tes3.player,
+			})
+			tes3.messageBox(i18n("Learned") .. " %q.", spell.name)
+		end)
+		select:register(tes3.uiEvent.help, function(e)
+			tes3ui.createTooltipMenu({ spell = spell })
+		end)
+		select.visible = false
+	end
+end
+
+---@param container tes3uiElement
+---@param soulGems tes3misc[]
+---@param creatures tes3creature[]
+local function createSoulGemTab(container, soulGems, creatures)
+	-- Let's take common soul gem as starting gem, because the first one is Azura's star.
+	local startingGem = soulGems[2]
+	local selectedGemVariable = mwse.mcm.createVariable({
+		value = startingGem
+	})
+
+	local selectedSoulVariable = mwse.mcm.createVariable({
+		value = util.getStartingCreature(creatures, startingGem)
+	})
+
+	--- @type mwseMCMDropdownOption[]
+	local options = {}
+	for _, soulGem in ipairs(soulGems) do
+		table.insert(options, {
+			label = soulGem.name,
+			value = soulGem
+		})
+	end
+
+	local topBlock = uiUtil.createLeftRightBlock(
+		container, tes3ui.registerID("CommandMenu_soulGems_top_block_container"))
+	topBlock.borderAllSides = 4
+
+	local dropDown = mwse.mcm.createDropdown(topBlock, {
+		label = i18n("Choose a Soul Gem:"),
+		options = options,
+		variable = selectedGemVariable,
+	})
+
+	local previewBlock = uiUtil.createLeftRightBlock(topBlock,
+		tes3ui.registerID("CommandMenu_soulGems_top_block_previewContainer"))
+
+	uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
+	-- Update currently selected soul gem preview
+	dropDown.callback = function(self)
+		selectedSoulVariable.value = util.getStartingCreature(creatures, selectedGemVariable.value)
+		uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
+	end
+
+	container:createLabel({
+		text = i18n("Choose a Soul:"),
+	})
+
+	local pane = uiUtil.createSearchPane(container, uiUtil.standardFilterVisible)
+	local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
+
+	for _, creature in ipairs(creatures) do
+		local select = pane:createTextSelect({
+			text = string.format("%s, (%d %s)", util.getNiceName(creature), creature.soul, pts)
+		})
+		select:registerAfter(tes3.uiEvent.mouseClick, function(e)
+			local maxSoul = selectedGemVariable.value.soulGemCapacity
+			if creature.soul > maxSoul then
+				tes3.messageBox(i18n("Too large soul"))
+				return
+			end
+			selectedSoulVariable.value = creature
+			uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
+			select:getTopLevelMenu():updateLayout()
+		end)
+	end
+end
+
+
 ---@param npc tes3npc
 local function openTeleportMenuNPC(npc)
 	local name = util.getNiceName(npc)
@@ -34,10 +628,10 @@ local function openTeleportMenuNPC(npc)
 	})
 end
 
-
 ---@param container tes3uiElement
----@param objects CommandMenu.objectsTable
-local function createTeleportTab(container, objects)
+---@param cells tes3cell[]
+---@param npcs tes3npc[]
+local function createTeleportTab(container, cells, npcs)
 	local current = mwse.mcm.createVariable({ value = 1 })
 
 	local dropDown = mwse.mcm.createDropdown(container, {
@@ -67,7 +661,7 @@ local function createTeleportTab(container, objects)
 
 	-- Teleport to Cell
 	local cellPane = uiUtil.createSearchPane(cellContainer, uiUtil.standardFilterVisible)
-	for _, cell in ipairs(objects.cells) do
+	for _, cell in ipairs(cells) do
 		local select = cellPane:createTextSelect({
 			text = cell.editorName
 		})
@@ -84,7 +678,7 @@ local function createTeleportTab(container, objects)
 	local idFormat = i18n("Id") .. ": %q"
 	local locationFormat = i18n("Located at") .. ": %s"
 	local deadFormat = i18n("Dead") .. ": %s"
-	for _, npc in ipairs(objects.npcs) do
+	for _, npc in ipairs(npcs) do
 		local select = npcPane:createTextSelect({
 			text = util.getNiceName(npc)
 		})
@@ -114,9 +708,10 @@ local function createTeleportTab(container, objects)
 	end
 end
 
+
 ---@param container tes3uiElement
----@param objects CommandMenu.objectsTable
-local function createFactionsTab(container, objects)
+---@param factions tes3faction[]
+local function createFactionsTab(container, factions)
 	local pane = uiUtil.createSearchPane(container, function(category, searchTerm, cleared)
 		local label = category:findChild("CategoryLabel")
 		--- @cast label tes3uiElement
@@ -131,7 +726,7 @@ local function createFactionsTab(container, objects)
 		end
 	end)
 
-	for _, faction in ipairs(objects.factions) do
+	for _, faction in ipairs(factions) do
 		local entryContainer = uiUtil.createCategory(pane, util.getNiceName(faction))
 		local label = entryContainer:createLabel({ text = util.getFactionLabel(faction) })
 		local buttonsBlock = uiUtil.createLeftRightBlock(entryContainer)
@@ -189,13 +784,13 @@ end
 ---@param container tes3uiElement
 local function createQuestsTab(container)
 	local currentQuest = tes3.worldController.quests[1]
-	local label = questsContainer:createLabel({ text = i18n("Choose a quest...") })
+	local label = container:createLabel({ text = i18n("Choose a quest...") })
 	label.color = tes3ui.getPalette(tes3.palette.headerColor)
 
-	local questsPane = uiUtil.createSearchPane(questsContainer, uiUtil.standardFilterVisible)
+	local questsPane = uiUtil.createSearchPane(container, uiUtil.standardFilterVisible)
 	questsPane.heightProportional = 2 / 3
 
-	local currentContainer = questsContainer:createThinBorder({
+	local currentContainer = container:createThinBorder({
 		id = tes3ui.registerID(
 			"CommandMenu_quests_current_container")
 	})
@@ -217,6 +812,7 @@ local function createQuestsTab(container)
 	uiUtil.recreateQuestInfosList(currentContainer, currentQuest)
 end
 
+
 --- @param objects CommandMenu.objectsTable
 function ui.createMenu(objects)
 	local menuElements = uiUtil.createHeadingMenu({
@@ -233,605 +829,27 @@ function ui.createMenu(objects)
 
 	--- @type table<string, tes3uiElement>
 	local tabs = {}
+	tabs.generalContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_general_container"))
+	createGeneralTab(tabs.generalContainer)
 
-	local generalContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_general_container"))
-	tabs.generalContainer = generalContainer
-	do -- General tab
-		local pane = generalContainer:createVerticalScrollPane()
-		pane.autoHeight = true
-		pane.heightProportional = 1.0
+	tabs.playerContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_player_container"))
+	createPlayerTab(tabs.playerContainer)
 
-		local contentsBlock = uiUtil.createTopBottomBlock(pane)
-
-		do -- Engine settings category
-			local container = uiUtil.createCategory(contentsBlock, i18n("Engine settings"))
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("God mode"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.menuController.godModeEnabled
-					end,
-					setter = function(self, newValue)
-						commands.setGodMode(newValue)
-					end,
-				}),
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Collision"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return not tes3.worldController.menuController.collisionDisabled
-					end,
-					setter = function(self, newValue)
-						commands.setCollsion(newValue)
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Vanity mode"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.getVanityMode()
-					end,
-					setter = function(self, newValue)
-						commands.setVanityMode(newValue)
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("AI enabled"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return not tes3.worldController.menuController.aiDisabled
-					end,
-					setter = function(self, newValue)
-						commands.setAI(newValue)
-					end,
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Fog of war on local map"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return not tes3.worldController.menuController.fogOfWarDisabled
-					end,
-					setter = function(self, newValue)
-						commands.setFogOfWar(newValue)
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Wireframe mode"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.menuController.wireframeEnabled
-					end,
-					setter = function(self, newValue)
-						commands.setWireframe(newValue)
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Draw cell borders"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.menuController.bordersEnabled
-					end,
-					setter = function(self, newValue)
-						tes3.worldController.menuController.bordersEnabled = newValue
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Draw collision boxes"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.menuController.collisionBoxesEnabled
-					end,
-					setter = function(self, newValue)
-						tes3.worldController.menuController.collisionBoxesEnabled = newValue
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Draw path grid nodes"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.menuController.pathGridShown
-					end,
-					setter = function(self, newValue)
-						tes3.worldController.menuController.pathGridShown = newValue
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Teleportation spells enabled"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return not tes3.worldController.flagTeleportingDisabled
-					end,
-					--- @param newValue boolean
-					setter = function(self, newValue)
-						tes3.worldController.flagTeleportingDisabled = not newValue
-					end
-				})
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Levitation spells enabled"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return not tes3.worldController.flagLevitationDisabled
-					end,
-					--- @param newValue boolean
-					setter = function(self, newValue)
-						tes3.worldController.flagLevitationDisabled = not newValue
-					end
-				})
-			})
-		end
-
-		do -- Mechanics
-			local container = uiUtil.createCategory(contentsBlock, i18n("Mechanics"))
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Combat enabled"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "combatEnabled" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Rest interrupt enabled"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "restInterruptEnabled" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Essential actors can't be damaged"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "blockDamageForEssentialActors" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Always hit"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "alwaysHit" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Casting always succeeds"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "castingAlwaysSucceeds" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Spells don't consume magicka"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "spellsConsumeNoMagicka" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Enchantments don't consume charge"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "enchantmentsConsumeNoCharge" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Brewing potions always succeeds"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "potionBrewingAlwaysSucceeds" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Self-repairing equipment always succeeds"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "repairingAlwaysSucceeds" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Picking locks always succeeds"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "lockPickAlwaysSucceeds" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Player doesn't recieve Sun Damage as a Vampire"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "blockSunDamage" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Fatiguesless jumping"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "fatiguelessJumping" })
-			})
-		end
-
-		do -- Security & Crime
-			local container = uiUtil.createCategory(contentsBlock, i18n("Security & Crime"))
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Auto unlock doors and containers"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "unlockEnabled" })
-			})
-
-			local function getBountyLabel()
-				local bounty = 0
-				if tes3.mobilePlayer then
-					bounty = tes3.mobilePlayer.bounty
-				end
-				return string.format(i18n("Current player bounty") .. " = %s.", bounty)
-			end
-
-			mwse.mcm.createButton(container, {
-				label = getBountyLabel(),
-				buttonText = i18n("Clear bounty"),
-				postCreate = function(self)
-					self.label = getBountyLabel()
-					self.elements.label.text = getBountyLabel()
-				end,
-				callback = function(self)
-					commands.clearBounty()
-					self:postCreate()
-				end
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Stealing owned items is not a crime"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "stealingFree" })
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Picking locks isn't considered a crime"),
-				leftSide = true,
-				variable = mwse.mcm.createTableVariable({ table = config, id = "lockPickNotCrime" })
-			})
-
-			mwse.mcm.createButton(container, {
-				label = i18n("Clear stolen flag on items in player's inventory"),
-				buttonText = i18n("Clear"),
-				callback = function(self)
-					commands.clearStolenFlag()
-					tes3.messageBox(i18n("Stolen flag cleared."))
-				end
-			})
-		end
-
-		do -- Time & Weather
-			local container = uiUtil.createCategory(contentsBlock, i18n("Time & Weather"))
-
-			local weathers = {}
-			for weather, id in pairs(tes3.weather) do
-				table.insert(weathers, { label = i18n("weather." .. util.capitalize(weather)), value = id })
-			end
-			table.sort(weathers, function(a, b)
-				return a.label < b.label
-			end)
-
-			mwse.mcm.createDropdown(container, {
-				label = i18n("Change current weather:"),
-				options = weathers,
-				variable = mwse.mcm.createCustom({
-					getter = function()
-						return tes3.getCurrentWeather().index or 0
-					end,
-					setter = function(self, newVal)
-						tes3.worldController.weatherController:switchImmediate(newVal)
-					end
-				})
-			})
-
-			mwse.mcm.createTextField(container, {
-				label = i18n("Timescale"),
-				-- TODO: might want to save the changes to timescale
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.timescale.value
-					end,
-					converter = tonumber,
-					setter = function(self, newValue)
-						tes3.worldController.timescale.value = newValue
-					end,
-
-				})
-			})
-
-			mwse.mcm.createSlider(container, {
-				label = i18n("Simulation time scale"),
-				min = 0.5,
-				max = 2.0,
-				jump = 0.01,
-				decimalPlaces = 2,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.worldController.simulationTimeScalar
-					end,
-					setter = function(self, newValue)
-						tes3.worldController.simulationTimeScalar = newValue
-					end
-				})
-			})
-		end
-
-		do -- Misc
-			local container = uiUtil.createCategory(contentsBlock, i18n("Misc"))
-
-			local resetActors = container:createButton({
-				text = i18n("Reset actors")
-			})
-			resetActors:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.resetActors()
-			end)
-
-			local fixMe = container:createButton({
-				text = i18n("Fix me")
-			})
-			fixMe:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.fixMe()
-			end)
-
-			local killHostiles = container:createButton({
-				text = i18n("Kill hostiles")
-			})
-			killHostiles:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.killHostiles()
-			end)
-
-			local fillMap = container:createButton({
-				text = i18n("Show all map markers")
-			})
-			fillMap:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.fillMap()
-			end)
-
-			local fillJournal = container:createButton({
-				text = i18n("Fill journal")
-			})
-			fillJournal:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.fillJournal()
-			end)
-
-			local statsReview = container:createButton({
-				text = i18n("Open stats review menu")
-			})
-			statsReview:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.enableStatReviewMenu()
-			end)
-
-			local rechargePowers = container:createButton({
-				text = i18n("Recharge player powers")
-			})
-			rechargePowers:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.rechargePowers()
-				tes3.messageBox(i18n("All powers recharged."))
-			end)
-
-			local removeMagic = container:createButton({
-				text = i18n("Remove magic")
-			})
-			removeMagic:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				commands.removeMagic()
-				tes3.messageBox(i18n("Removed all curses, diseases and spells."))
-			end)
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Player can colide with other actors and projectiles?"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.mobilePlayer.mobToMobCollision
-					end,
-					setter = function(self, newValue)
-						tes3.mobilePlayer.mobToMobCollision = newValue
-					end,
-				}),
-			})
-
-			mwse.mcm.createOnOffButton(container, {
-				label = i18n("Player can colide with other objects?"),
-				leftSide = true,
-				variable = mwse.mcm.createCustom({
-					getter = function(self)
-						return tes3.mobilePlayer.movementCollision
-					end,
-					setter = function(self, newValue)
-						tes3.mobilePlayer.movementCollision = newValue
-					end,
-				}),
-			})
-		end
-	end
-
-	local playerContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_player_container"))
-	tabs.playerContainer = playerContainer
-	do -- Player tab
-		local pane = uiUtil.createSearchPane(playerContainer, function(category, searchTerm, cleared)
-			local contentsContainer = category:findChild("ContentsContainer")
-			---@cast contentsContainer tes3uiElement
-			for _, statBlock in ipairs(contentsContainer.children) do
-				local labelBlock = statBlock:findChild("LabelBlock")
-				---@cast labelBlock tes3uiElement
-				local label = labelBlock.children[1]
-				local statContainer = labelBlock.parent
-				if cleared then
-					statContainer.visible = true
-				else
-					if util.ciContains(label.text, searchTerm) then
-						statContainer.visible = true
-					else
-						statContainer.visible = false
-					end
-				end
-			end
-		end, uiid.playerPane)
-
-		uiUtil.recreatePlayerPane(pane)
-	end
-
-	local itemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_items_container"))
-	tabs.itemsContainer = itemsContainer
-	do -- Items tab
-		local count = mwse.mcm.createVariable({ value = 1 })
-		local slider = mwse.mcm.createSlider(itemsContainer, {
-			label = i18n("No. items to add"),
-			variable = count,
-			min = 1,
-			max = 10,
-			jump = 1,
-		})
-
-		local pane = uiUtil.createSearchPane(itemsContainer, uiUtil.standardFilterHidden)
-
-		for _, item in ipairs(objects.items) do
-			local select = pane:createTextSelect({ text = util.getNiceName(item) })
-			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				tes3.addItem({
-					item = item,
-					count = count.value,
-					reference = tes3.player,
-				})
-				tes3.messageBox(i18n("Added") .. " %d %q.", count.value, item.name)
-			end)
-			select:register(tes3.uiEvent.help, function(e)
-				local tooltip = tes3ui.createTooltipMenu({ item = item })
-				local border = uiUtil.createAutoSizedBlock(tooltip)
-				border.childAlignX = 0.5
-				border.borderAllSides = 8
-				border.paddingAllSides = 8
-				local icon = border:createImage({ path = "icons\\" .. item.icon })
-				icon.imageScaleX = 2
-				icon.imageScaleY = 2
-				tooltip:updateLayout()
-			end)
-			select.visible = false
-		end
-	end
+	tabs.itemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_items_container"))
+	createItemsTab(tabs.itemsContainer, objects.items)
 
 	local spellsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_spells_container"))
 	tabs.spellsContainer = spellsContainer
-	do -- Spells tab
-		local pane = uiUtil.createSearchPane(spellsContainer, uiUtil.standardFilterHidden)
+	createSpellsTab(tabs.spellsContainer, objects.spells)
 
-		local spellTypeNames = table.invert(tes3.spellType)
-		for i, name in pairs(spellTypeNames) do
-			spellTypeNames[i] = util.capitalize(name)
-		end
-		local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
-
-		for _, spell in ipairs(objects.spells) do
-			local select = pane:createTextSelect({
-				text = string.format("%s, (%s, %d %s)",
-					spell.name, i18n(spellTypeNames[spell.castType]), spell.magickaCost, pts)
-			})
-			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				tes3.playSound({ sound = "spellmake success" })
-				tes3.addSpell({
-					spell = spell,
-					reference = tes3.player,
-				})
-				tes3.messageBox(i18n("Learned") .. " %q.", spell.name)
-			end)
-			select:register(tes3.uiEvent.help, function(e)
-				tes3ui.createTooltipMenu({ spell = spell })
-			end)
-			select.visible = false
-		end
-	end
-
-	local soulGemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_soulGem_container"))
-	tabs.soulGemsContainer = soulGemsContainer
-	do -- Soul Gems tab
-		-- Let's take common soul gem as starting gem, because the first one is Azura's star.
-		local startingGem = objects.soulGems[2]
-		local selectedGemVariable = mwse.mcm.createVariable({
-			value = startingGem
-		})
-
-		local selectedSoulVariable = mwse.mcm.createVariable({
-			value = util.getStartingCreature(objects.creatures, startingGem)
-		})
-
-		--- @type mwseMCMDropdownOption[]
-		local options = {}
-		for _, soulGem in ipairs(objects.soulGems) do
-			table.insert(options, {
-				label = soulGem.name,
-				value = soulGem
-			})
-		end
-
-		local topBlock = uiUtil.createLeftRightBlock(
-			soulGemsContainer, tes3ui.registerID("CommandMenu_soulGems_top_block_container"))
-		topBlock.borderAllSides = 4
-
-		local dropDown = mwse.mcm.createDropdown(topBlock, {
-			label = i18n("Choose a Soul Gem:"),
-			options = options,
-			variable = selectedGemVariable,
-		})
-
-		local previewBlock = uiUtil.createLeftRightBlock(topBlock,
-			tes3ui.registerID("CommandMenu_soulGems_top_block_previewContainer"))
-
-		uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
-		-- Update currently selected soul gem preview
-		dropDown.callback = function(self)
-			selectedSoulVariable.value = util.getStartingCreature(objects.creatures, selectedGemVariable.value)
-			uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
-		end
-
-		soulGemsContainer:createLabel({
-			text = i18n("Choose a Soul:"),
-		})
-
-		local pane = uiUtil.createSearchPane(soulGemsContainer, uiUtil.standardFilterVisible)
-		local pts = tes3.findGMST(tes3.gmst.spoints).value --[[@as string]]
-
-		for _, creature in ipairs(objects.creatures) do
-			local select = pane:createTextSelect({
-				text = string.format("%s, (%d %s)", util.getNiceName(creature), creature.soul, pts)
-			})
-			select:registerAfter(tes3.uiEvent.mouseClick, function(e)
-				local maxSoul = selectedGemVariable.value.soulGemCapacity
-				if creature.soul > maxSoul then
-					tes3.messageBox(i18n("Too large soul"))
-					return
-				end
-				selectedSoulVariable.value = creature
-				uiUtil.recreateSoulGemPreview(previewBlock, selectedGemVariable.value, selectedSoulVariable.value)
-				select:getTopLevelMenu():updateLayout()
-			end)
-		end
-	end
+	tabs.soulGemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_soulGem_container"))
+	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems, objects.creatures)
 
 	tabs.teleportContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_teleport_container"))
-	createTeleportTab(tabs.teleportContainer, objects)
+	createTeleportTab(tabs.teleportContainer, objects.cells, objects.npcs)
 
 	tabs.factionsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_factions_container"))
-	createFactionsTab(tabs.factionsContainer, objects)
+	createFactionsTab(tabs.factionsContainer, objects.factions)
 
 	tabs.questsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_quests_container"))
 	createQuestsTab(tabs.questsContainer)
