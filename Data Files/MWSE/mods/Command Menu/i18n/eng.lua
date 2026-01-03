@@ -130,6 +130,8 @@ return {
 	-- In the hover tooltip over the NPC's location:
 		["Id"] = "Id",
 		["Located at"] = "Located at",
+		["Position"] = "Position",
+		["Disabled"] = "Disabled",
 		["Dead"] = "Dead",
 
 

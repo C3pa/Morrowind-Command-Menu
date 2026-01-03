@@ -703,7 +703,11 @@ local function createTeleportTab(container, npcs)
 	local npcPane = uiUtil.createSearchPane(npcContainer, uiUtil.standardFilterVisible)
 	local idFormat = i18n("Id") .. ": %q"
 	local locationFormat = i18n("Located at") .. ": %s"
+	local positionFormat = i18n("Position") .. ": %s"
+	local disabledFormat = i18n("Disabled") .. ": %s"
 	local deadFormat = i18n("Dead") .. ": %s"
+	local yes = tes3.findGMST(tes3.gmst.sYes).value
+	local no = tes3.findGMST(tes3.gmst.sNo).value
 
 	for _, npc in ipairs(tes3.dataHandler.nonDynamicData.objects) do
 		if not util.isValidNpc(npc) then
@@ -719,6 +723,7 @@ local function createTeleportTab(container, npcs)
 		select:registerAfter(tes3.uiEvent.mouseClick, function()
 			openTeleportMenuNPC(npcId, name)
 		end)
+
 		select:register(tes3.uiEvent.help, function(e)
 			local npcRef = tes3.getReference(npcId)
 			local tooltip = tes3ui.createTooltipMenu({ object = npcRef.object })
@@ -726,11 +731,10 @@ local function createTeleportTab(container, npcs)
 			bodyBlock.childAlignX = 0
 			bodyBlock.paddingAllSides = 8
 			bodyBlock:createLabel({ text = string.format(idFormat, npcRef.id) })
-			bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
-			bodyBlock:createLabel({
-				text = string.format(deadFormat,
-					npcRef.isDead and tes3.findGMST(tes3.gmst.sYes).value or tes3.findGMST(tes3.gmst.sNo).value)
-			})
+            bodyBlock:createLabel({ text = string.format(locationFormat, npcRef.cell.editorName) })
+			bodyBlock:createLabel({ text = string.format(positionFormat, npcRef.position )})
+			bodyBlock:createLabel({ text = string.format(disabledFormat, npcRef.disabled and yes or no) })
+			bodyBlock:createLabel({ text = string.format(deadFormat, npcRef.isDead and yes or no) })
 		end)
 		::continue::
 	end
