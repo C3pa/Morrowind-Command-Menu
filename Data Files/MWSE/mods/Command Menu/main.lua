@@ -1,6 +1,5 @@
 local config = require("Command Menu.config")
 local ui = require("Command Menu.ui")
-local util = require("Command Menu.util")
 
 local i18n = mwse.loadTranslations("Command Menu")
 local log = mwse.Logger.new({
@@ -8,19 +7,9 @@ local log = mwse.Logger.new({
 	logLevel = config.logLevel
 })
 
---- @type CommandMenu.objectsTable
-local objects = {}
-
 dofile("Command Menu.mcm")
 
-
-event.register(tes3.event.initialized, function()
-	objects = util.getObjects()
-end)
-
-event.register(tes3.event.loaded, function()
-	ui.createMenu(objects)
-end)
+event.register(tes3.event.loaded, ui.createMenu)
 
 --- @param e keyDownEventData|mouseWheelEventData|mouseButtonDownEventData
 local function openMenu(e)

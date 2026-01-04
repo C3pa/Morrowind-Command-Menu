@@ -558,10 +558,14 @@ local function createSpellsTab(container)
 	end)
 end
 
+---@type tes3misc[]
+local soulGems
+
 -- There is some kind of layout issue where the soul gem preview isn't visible until first interaction on this tab.
 ---@param container tes3uiElement
----@param soulGems tes3misc[]
-local function createSoulGemTab(container, soulGems)
+local function createSoulGemTab(container)
+	soulGems = soulGems or util.getSoulGems()
+
 	-- Let's take common soul gem as starting gem, because the first one is Azura's star.
 	local startingGem = soulGems[2]
 	local selectedGemVariable = mwse.mcm.createVariable({
@@ -876,8 +880,7 @@ local function createQuestsTab(container)
 end
 
 
---- @param objects CommandMenu.objectsTable
-function ui.createMenu(objects)
+function ui.createMenu()
 	local menuElements = uiUtil.createHeadingMenu({
 		heading = i18n("Choose items to add"),
 		id = menuID,
@@ -905,7 +908,7 @@ function ui.createMenu(objects)
 	createSpellsTab(tabs.spellsContainer)
 
 	tabs.soulGemsContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_soulGem_container"))
-	createSoulGemTab(tabs.soulGemsContainer, objects.soulGems)
+	createSoulGemTab(tabs.soulGemsContainer)
 
 	tabs.teleportContainer = uiUtil.createTabContainer(menu, tes3ui.registerID("CommandMenu_teleport_container"))
 	createTeleportTab(tabs.teleportContainer)

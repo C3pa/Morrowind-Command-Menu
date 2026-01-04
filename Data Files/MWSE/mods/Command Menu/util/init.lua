@@ -119,25 +119,19 @@ local function nameSorter(a, b)
 	return aName < bName
 end
 
-function util.getObjects()
-	--- @class CommandMenu.objectsTable
-	local objects = {
-		--- @type tes3misc[]
-		soulGems = {},
-	}
+function util.getSoulGems()
+	--- @type tes3misc[]
+	local soulGems = {}
 
-	-- Shorthands
-	local soulGems = objects.soulGems
 	for _, object in ipairs(tes3.dataHandler.nonDynamicData.objects) do
-		if not util.isObjectDeprecated(object) then
-			if object.objectType == tes3.objectType.miscItem and object.isSoulGem then
-				table.insert(soulGems, object)
-			end
+		if object.objectType == tes3.objectType.miscItem and object.isSoulGem
+			and not util.isObjectDeprecated(object) then
+			table.insert(soulGems, object)
 		end
 	end
 	table.sort(soulGems, nameSorter)
 
-	return objects
+	return soulGems
 end
 
 return util
